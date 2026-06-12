@@ -25,9 +25,9 @@ Do **not** add `Scope:` to the micro skill's own prompts — only macro-launched
 | B — macro structural | 1 narrative + 0–1 math (if math present) | yes |
 | E — integration | 1 narrative + 0–1 math, boundary-focused | yes |
 
-Use `verifier_profile.deep` from `session.md` § Verifier model profile (or section-brief when confirmed). Launch in parallel when practical.
+Use `Phase 2 deep` slug from `session.md` § Verifier model profile when `user_confirmed: true`. Launch in parallel when practical.
 
-**Hard stop:** if `session.md` `user_confirmed: false`, run Stage A AskQuestion before launching section verifier Tasks.
+**Hard stop:** if `user_confirmed: false`, run Stage A `AskQuestion` before launching section verifier Tasks ([cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile).
 
 ## Narrative verifier prompt (Scope: section)
 

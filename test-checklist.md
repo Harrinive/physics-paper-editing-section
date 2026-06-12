@@ -19,10 +19,12 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 ## Full acceptance (after Stage E)
 
 ```
-[ ] section-brief.md exists with verifier_profile and ## Job mode
-[ ] session.md exists; pipeline_stage matches manifest state; § Verifier model profile has `user_confirmed: true` before any verifier Task
+[ ] section-brief.md exists with ## Job mode and verifier profile mirror
+[ ] session.md exists; pipeline_stage matches manifest state; § Verifier model profile has `user_confirmed: true` before any verifier Task (brief/manifest alone insufficient — cross-skill.md)
 [ ] manifest.json — every chunk status: pass
 [ ] chunks/*.checks — one file per chunk with OVERALL: PASS
+[ ] chunks/*.checks — `compliance_orchestrator_plan: PASS` and `compliance_worker_reports: PASS`; one `sentence_S*k*:` line per label (no `sentence_S1-S3` ranges)
+[ ] session.md § Last turn compliance matches last chunk CHECKS
 [ ] Source .tex — chunk anchors resolve; no [INSERT PROSE] placeholders remain
 [ ] Stage E integration — narrative + math verifiers: no unresolved FAIL
 [ ] Response includes <!-- SECTION DONE ... --> with integration: PASS
@@ -32,11 +34,13 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 ## Regression checks
 
 ```
-[ ] Micro skill still works independently on ≤12-sentence quotes
-[ ] Micro gate routes >12 sentences to this macro skill
+[ ] Micro skill works standalone on ≤12-sentence quotes (no .physics-edit/, full AskQuestion path — cross-skill.md § Verifier model profile · standalone)
+[ ] Micro gate routes >12 sentences to this macro skill (cross-skill.md § Routing)
 [ ] Stage D never processes two chunks in one turn
 [ ] Verifier profile asked once in Stage A, not re-asked per chunk
 [ ] Orchestrator did not author chunk prose without micro PASS
+[ ] Phase 1 polish chunks: CHECKS or Mode line shows N sentence Tasks (not one batched Task)
+[ ] Section orchestrator did not launch micro verifier Tasks directly
 [ ] Cold resume from session.md only — agent honors job_mode without re-running Q2
 [ ] No verifier Task launched without Stage A AskQuestion confirmation (`user_confirmed: true`)
 ```

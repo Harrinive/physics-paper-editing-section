@@ -36,11 +36,10 @@ Standing editing constraints from the user — **read every turn**; pass to ever
 
 | Role | Slug | Used for |
 |------|------|----------|
-| Phase 1 sentence | `<slug>` | Phase 1 SUBAGENTS (polish path only) |
-| Phase 2 sentence | `<slug>` | Changed-sentence verifier Tasks |
-| Phase 2 deep | `<slug>` | Narrative + math verifier Tasks |
+| Phase 1 sentence | `<slug>` | Phase 1 SUBAGENTS (polish only); may equal Phase 2 sentence |
+| Phase 2 sentence | `<slug>` | Changed-sentence verifier Tasks; default for Phase 1 when row above omitted |
+| Phase 2 deep | `<slug>` | Narrative + math verifier Tasks; macro Stages B/E |
 | Phase 2 synth | `<slug>` | Synthesizer (`OVERALL`; never fast tier) |
-| Section B/E | `<slug>` | Macro structural + integration verifiers (= Phase 2 deep) |
 
 - **user_confirmed:** `true` | `false` — set `true` **only** after Stage A `AskQuestion` (*Verifier model profile*) returns
 - **confirmed_at:** Stage A · `<YYYY-MM-DD>` (or `—` if not yet confirmed)
@@ -49,6 +48,19 @@ Standing editing constraints from the user — **read every turn**; pass to ever
 On resume: if `user_confirmed: false` → **AskQuestion before any verifier Task** (Stages B, D, E). Never auto-select slugs from brief/manifest alone.
 
 Micro chunk agents inherit this profile when `user_confirmed: true` — document `Verifier profile: inherited from session.md (Stage A confirmed)`.
+
+## Last turn compliance
+
+Copied from synthesizer CHECKS after each chunk PASS — orchestrator does **not** invent these values.
+
+- **chunk:** `<id>`
+- **compliance_orchestrator_plan:** PASS | FAIL
+- **compliance_worker_reports:** PASS | FAIL
+- **phase1_sentence_tasks:** `<launched>/<required>` (e.g. `3/3`)
+- **phase2_sentence_tasks:** `<launched>/<changed>` (e.g. `0/0`)
+- **batched:** `false` | `<note if §3.1 only>`
+
+If `compliance_*: FAIL` on last turn, **re-run that chunk** with corrected Task plan before advancing.
 
 ## Current position
 
@@ -69,6 +81,7 @@ Micro chunk agents inherit this profile when `user_confirmed: true` — document
 | `~/.cursor/skills/physics-paper-editing-section/SKILL.md` | Macro orchestrator |
 | `~/.cursor/skills/physics-paper-editing-section/stages.md` | Stages A–E steps |
 | `~/.cursor/skills/physics-paper-editing-section/chunk-contract.md` | Stage D micro handoff |
+| `~/.cursor/skills/physics-paper-editing/cross-skill.md` | Micro ↔ macro routing and canonical rules |
 | `~/.cursor/skills/physics-paper-editing/gate.md` | Edit gate Q2 reference (frozen at Stage A) |
 | `~/.cursor/skills/physics-paper-editing/SKILL.md` | Micro skill (Stage D per chunk) |
 

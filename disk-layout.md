@@ -43,13 +43,13 @@ Write at intake. Template:
 - **Rationale:** <1–2 sentences — user intent + placeholder scan>
 - **rewrite_chunks:** [c01, …] — only when mixed
 
-## Verifier model profile (Stage A — reused by all chunks)
-- sentence: <slug Q1>
-- deep: <slug Q2>  (narrative + logic)
-- synth: <slug Q3>
+## Verifier model profile (Stage A — mirror of session.md)
+- Phase 2 sentence: <slug Q1> — also used for Phase 1 SUBAGENTS unless overridden in session.md
+- Phase 2 deep: <slug Q2> — narrative + math (macro Stages B/E use this slug)
+- Phase 2 synth: <slug Q3>
 ```
 
-The orchestrator passes this profile to every micro chunk invocation **only when** `session.md` has `user_confirmed: true` from Stage A AskQuestion.
+Canonical handoff rules: [cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile. The orchestrator passes slugs to micro chunk invocations **only when** `session.md` has `user_confirmed: true` from Stage A `AskQuestion`.
 
 ## manifest.json schema
 
@@ -69,6 +69,8 @@ Top-level object:
   "chunks": [ "<ChunkRecord>", "..." ]
 }
 ```
+
+`verifier_profile` keys (`sentence`, `deep`, `synth`) mirror `session.md` § Verifier model profile Phase 2 rows. Use only when `user_confirmed: true`.
 
 Each **ChunkRecord**:
 
@@ -126,6 +128,7 @@ Create from [examples/session.example.md](examples/session.example.md) at Stage 
 | User special requests | Standing user directives + deferred major edits — honor every turn |
 | Verifier model profile | Stage A AskQuestion slugs + `user_confirmed` — required before any verifier Task |
 | Phase 1 reminder | ON / OFF / per-chunk — do not re-derive from gate.md |
+| Last turn compliance | From synthesizer CHECKS: `compliance_orchestrator_plan`, `compliance_worker_reports`, `phase1`/`phase2` task counts — **not** written by orchestrator |
 | Current position | `pipeline_stage`, progress, `next_chunk_id`, `last_completed` |
 | Hard rules | One chunk/turn, honor job_mode, END TURN |
 | Next action | Single imperative for this turn only |

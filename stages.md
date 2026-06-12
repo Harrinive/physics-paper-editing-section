@@ -1,6 +1,6 @@
 # Stages A–E
 
-**Read with the Read tool** when running the macro pipeline ([SKILL.md](SKILL.md)).
+**Read with the Read tool** when running the macro pipeline ([SKILL.md](SKILL.md)). Micro handoff per chunk: [chunk-contract.md](chunk-contract.md) · shared rules: [cross-skill.md](../physics-paper-editing/cross-skill.md).
 
 ---
 
@@ -98,7 +98,7 @@ Use the same feasibility rules as the micro gate ([gate.md](../physics-paper-edi
      — edit_gate from session job_mode or manifest per-chunk override
      — skip micro edit gate Q2 when edit_gate supplied
      — Phase 1 ON (polish) or OFF (rewrite) per edit_gate
-     — Phase 2 always; verifier_model_profile from brief (no re-ask)
+     — Phase 2 always; verifier profile from session.md when `user_confirmed: true` (no per-chunk re-ask)
      — write back to tex_anchor on OVERALL: PASS
 7. Archive CHECKS → chunks/<id>.checks; set status: pass, summary
 8. Rewrite session.md — progress, next_chunk_id, last_completed, next action, END TURN note
