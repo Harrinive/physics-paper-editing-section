@@ -11,6 +11,18 @@ description: >-
 
 Section-level editor for physics and mathematics LaTeX. **Orchestrates** the standalone micro skill ([physics-paper-editing](../physics-paper-editing/SKILL.md)); does not replace its Phase 1/Phase 2 pipeline.
 
+## Agent read order
+
+| When | Read (in order) |
+|------|-----------------|
+| **Every resume** | `session.md` → [cross-skill.md](../physics-paper-editing/cross-skill.md) § ON RESUME |
+| **Stages A–C, E** | [stages.md](stages.md), [disk-layout.md](disk-layout.md) |
+| **Stage B or E** | + [scope-and-verifiers.md](scope-and-verifiers.md) |
+| **Stage C or D** | + [chunk-contract.md](chunk-contract.md) |
+| **Stage D (per chunk)** | micro [SKILL.md](../physics-paper-editing/SKILL.md) — full steps 1–7 on `chunk_text` only |
+| **Automation / hooks** | [automation.md](automation.md) (optional) |
+| **Before declaring done** | [test-checklist.md](test-checklist.md) |
+
 | User gives | Use |
 |------------|-----|
 | ≤12 sentences | **Micro only** — do not start macro |
@@ -99,17 +111,7 @@ flowchart TD
 
 ## What to Read
 
-| When | Read (in order) |
-|------|-----------------|
-| **Every resume** | `session.md` → [cross-skill.md](../physics-paper-editing/cross-skill.md) § ON RESUME |
-| **Stages A–C, E** | [stages.md](stages.md), [disk-layout.md](disk-layout.md) |
-| **Stage B or E** | + [scope-and-verifiers.md](scope-and-verifiers.md) |
-| **Stage C or D** | + [chunk-contract.md](chunk-contract.md) |
-| **Stage D (per chunk)** | micro [SKILL.md](../physics-paper-editing/SKILL.md) — full steps 1–7 on `chunk_text` only |
-| **Automation / hooks** | [automation.md](automation.md) (optional) |
-| **Before declaring done** | [test-checklist.md](test-checklist.md) |
-
-Micro checklists (`narrative-checks.md`, `math-checks.md`) are loaded by section verifier Tasks or by the chunk agent — not duplicated here.
+See [Agent read order](#agent-read-order) above for the canonical table. Micro checklists (`narrative-checks.md`, `math-checks.md`) are loaded by section verifier Tasks or by the chunk agent — not duplicated here.
 
 ## Response format
 
