@@ -47,7 +47,7 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 
 ## Example dry-run target
 
-For the Ancilla Optimization notes, `\section{$\mathfrak{Q}$-correctable errors}` in `Notes/symdrome-specific correctable errors.tex` is a valid macro candidate (>12 sentences, multiple subsections).
+For the Ancilla Optimization notes, `\section{$\mathfrak{Q}$-correctable errors}` in `Notes/syndrome-specific correctable errors.tex` is a valid macro candidate (>12 sentences, multiple subsections).
 
 **Dry-run result:** prose sentence estimate >20 → macro eligible → ~4–6 chunks. Sample manifest: [examples/dry-run-manifest.example.json](examples/dry-run-manifest.example.json).
 

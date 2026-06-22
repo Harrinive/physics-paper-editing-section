@@ -133,7 +133,12 @@ Create from [examples/session.example.md](examples/session.example.md) at Stage 
 | Hard rules | One chunk/turn, honor job_mode, END TURN |
 | Next action | Single imperative for this turn only |
 
-**Rule:** `session.md` is rewritten from `manifest.json` at end of each turn — never the source of truth for chunk status. **`job_mode` is frozen at Stage A** (change only if user explicitly revises scope).
+**Authority rules:**
+
+- `manifest.json` is authoritative for chunk `status` and per-chunk progress.
+- `session.md` is authoritative for `job_mode`, verifier profile, user special requests, and **next action**.
+- The orchestrator updates **both** each turn. `session.md` reflects manifest state but is not the sole source for chunk status.
+- **`job_mode` is frozen at Stage A** (change only if user explicitly revises scope).
 
 ## Resuming
 

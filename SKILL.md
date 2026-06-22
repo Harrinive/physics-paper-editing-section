@@ -108,10 +108,7 @@ flowchart TD
 - **Verifier models** — Stage A `AskQuestion` once; persist in `session.md` with `user_confirmed: true`. Chunk agents inherit only after confirmation — never from `manifest.json` or `section-brief.md` alone ([cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile).
 - **Boundary fixes** in Stage E go through the micro skill (≤12 sentences each).
 - Do not skip Stage B because chunks will be verified later.
-
-## What to Read
-
-See [Agent read order](#agent-read-order) above for the canonical table. Micro checklists (`narrative-checks.md`, `math-checks.md`) are loaded by section verifier Tasks or by the chunk agent — not duplicated here.
+- **Stages B/E section verifiers** do not emit CHECKS blocks — record findings in the stage report only ([scope-and-verifiers.md](scope-and-verifiers.md)).
 
 ## Response format
 
