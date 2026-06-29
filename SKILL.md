@@ -11,6 +11,8 @@ description: >-
 
 Section-level editor for physics and mathematics LaTeX. **Orchestrates** the standalone micro skill ([physics-paper-editing](../physics-paper-editing/SKILL.md)); does not replace its Phase 1/Phase 2 pipeline.
 
+**Scope:** passages **>12 sentences** or whole `\section{...}` blocks. For **≤12 sentences**, use the micro skill directly.
+
 ## Agent read order
 
 | When | Read (in order) |
@@ -171,6 +173,13 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` — reference pa
 |------|------|
 | [examples/session.example.md](examples/session.example.md) | session.md template |
 | [examples/dry-run-manifest.example.json](examples/dry-run-manifest.example.json) | Sample manifest |
+
+## Related skills
+
+| Skill | When |
+|-------|------|
+| **physics-paper-editing** | Micro skill — invoked per chunk in Stage D |
+| [cross-skill.md](../physics-paper-editing/cross-skill.md) | Routing, terminology, verifier handoff, ON RESUME |
 
 ## Project-specific context (optional)
 
