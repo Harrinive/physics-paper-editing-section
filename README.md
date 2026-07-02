@@ -43,9 +43,12 @@ Use your platform's skill-creation workflow first, then port the workflow logic 
 
 1. Read `SKILL.md` and linked detail files to understand the workflow.
 2. Invoke your platform's skill-creation guide (table above) — do not hand-roll folder layout.
-3. Map Cursor-only constructs: `AskQuestion` → interactive prompts; `Task` subagents → your platform's subagent/delegation model; `.physics-edit/` disk state paths → equivalent session storage.
-4. Keep sibling install layout if using both micro + macro skills (`../physics-paper-editing/` links).
-5. Test on a short LaTeX passage before relying on the full verifier pipeline.
+3. Map Cursor-only constructs: `AskQuestion` → user-choice hard stops; `Task` → delegation API + per-worker `model` when supported; linked checklists → read/preload before gates; `.physics-edit/` → session/resume storage (`disk-layout.md`, `automation.md`).
+4. **Verifier model profile** — Stage A AskQuestion once; persist slugs + `user_confirmed: true` in session state; chunk agents inherit (`cross-skill.md`). Per-subagent models are platform-specific even within one vendor — see micro README § Adaptation checklist item 4 for platform mapping; use named agent presets if runtime pick isn't supported.
+5. **Compliance chain** — Task plan → Step 0 COMPLIANCE → synthesizer-only `OVERALL` (`compliance-monitoring.md`). Orchestrator never launches micro verifier Tasks or sets `OVERALL` — only micro chunk agents do (`cross-skill.md`).
+6. **Turn/resume** — default one chunk per turn; read `session.md` first on resume; honor frozen `job_mode` / `edit_gate`; do not re-run micro gate Q2.
+7. Keep sibling install layout for both skills (`../physics-paper-editing/` links).
+8. Test on a short LaTeX passage before relying on the full verifier pipeline.
 
 ## License
 
