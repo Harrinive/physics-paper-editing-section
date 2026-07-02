@@ -1,26 +1,16 @@
 # physics-paper-editing-section
 
-Agent Skill for editing whole LaTeX `\section{...}` blocks or any passage **>12 sentences** in physics and mathematics papers.
-
-**Orchestrates** the micro skill [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing); it does not replace that skill's Phase 1/Phase 2 pipeline. For **≤12 sentences**, use the micro skill directly.
+Cursor skill for editing a whole LaTeX section or longer passage in physics and mathematics papers. Its checks and workflows reflect editing conventions developed through work with Prof. Jens Koch.
 
 ## What it does
 
-Runs Stages **A–E** on a section:
+This skill applies **global edits and suggestions** at section scale, then **orchestrates local edits** through the micro skill — separating the section into shorter chunks and applying the edit-and-verify treatment for each chunk.
 
-1. **Stage A** — intake and brief
-2. **Stage B** — macro structural pass (reorder, split, signpost — no new prose)
-3. **Stage C** — chunk into ≤12-sentence units
-4. **Stage D** — invoke the micro skill once per chunk with full verification
-5. **Stage E** — integrate chunk boundaries
+**Scope:** whole LaTeX section or any passage **>12 sentences**. For shorter material, use the companion **micro skill** [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing).
 
-Disk state lives under `.physics-edit/<slug>/` in the project being edited.
+## Install on [Cursor](https://cursor.com)
 
-## Requires
-
-[physics-paper-editing](https://github.com/Harrinive/physics-paper-editing) installed as a **sibling folder**. Both skills cross-reference each other via relative paths.
-
-## Install (Cursor)
+Requires [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing) installed as a **sibling folder**. Clone both into your skills directory (see the [Cursor Skills docs](https://cursor.com/docs/context/skills) for more details) with the following commands:
 
 ```bash
 git clone https://github.com/Harrinive/physics-paper-editing.git ~/.cursor/skills/physics-paper-editing
@@ -35,9 +25,7 @@ Read **`SKILL.md`** first. Linked detail files (`stages.md`, `chunk-contract.md`
 
 ## Not Cursor? Adapt this skill
 
-**This skill was authored for Cursor Agent.** It references Cursor-specific tools (`AskQuestion`, `Task` subagents, compliance monitoring). Do not run it verbatim on other platforms — **adapt it** to your agent's tool surface and install layout.
-
-**Adapt both skills together** — the macro orchestrator depends on the micro skill for every chunk in Stage D.
+**This skill was made for Cursor Agent.** It references Cursor-specific tools (`AskQuestion`, `Task` subagents, compliance monitoring). Do not run it verbatim on other platforms — **adapt it** to your agent's tool surface and install layout. Adapt both skills together — the macro orchestrator depends on the micro skill for every chunk.
 
 ### How to adapt
 
@@ -47,8 +35,8 @@ Use your platform's skill-creation workflow first, then port the workflow logic 
 |----------|------------------------|-------------------|
 | **Cursor** | `~/.cursor/skills/<name>/` | [Cursor Skills docs](https://cursor.com/docs/context/skills) — or run `/create-skill` in Agent chat |
 | **Claude Code** | `~/.claude/skills/<name>/` or `.claude/skills/<name>/` | [Claude Code skills docs](https://code.claude.com/docs/en/skills) |
-| **OpenAI Codex** | `~/.codex/skills/<name>/` or `~/.agents/skills/<name>/` | [Codex Agent Skills](https://developers.openai.com/codex/skills) — run **`$skill-creator`** in Codex to scaffold the port |
-| **GitHub Copilot** | `~/.copilot/skills/<name>/` or `.github/skills/<name>/` | [Copilot: add skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) |
+| **OpenAI Codex** | `~/.agents/skills/<name>/` or `.agents/skills/<name>/` (`~/.codex/skills/` legacy) | [Codex Agent Skills](https://developers.openai.com/codex/skills) — run **`$skill-creator`** in Codex to scaffold the port |
+| **GitHub Copilot** | `~/.copilot/skills/<name>/` or `~/.agents/skills/<name>/`; project: `.github/skills/<name>/` or `.agents/skills/<name>/` | [Copilot: add skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) |
 | **Any agent (format reference)** | varies | [Agent Skills open spec](https://agentskills.io/specification) — shared `SKILL.md` frontmatter + body structure |
 
 ### Adaptation checklist
