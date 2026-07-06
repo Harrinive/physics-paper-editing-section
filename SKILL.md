@@ -13,6 +13,14 @@ Section-level editor for physics and mathematics LaTeX. **Orchestrates** the sta
 
 **Scope:** passages **>12 sentences** or whole `\section{...}` blocks. For **≤12 sentences**, use the micro skill directly.
 
+## When to use
+
+- Edit a whole `\section{...}` or any passage **>12 sentences** in a physics/math LaTeX manuscript
+- Orchestrate chunk-by-chunk micro editing with disk state under `.physics-edit/`
+- Resume a section edit after context compaction (read `session.md` first)
+
+**Route elsewhere:** **≤12 sentences** → **`physics-paper-editing`** micro skill only — do not start macro Stages A–E.
+
 ## Agent read order
 
 | When | Read (in order) |
@@ -147,7 +155,7 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` — reference pa
 - Stage D in progress: **"Continue with next chunk `<id>`"** (context reset).
 - Ambiguity: one focused AskQuestion.
 
-## File index
+## File map
 
 **Macro pipeline**
 
@@ -180,6 +188,14 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` — reference pa
 |-------|------|
 | **physics-paper-editing** | Micro skill — invoked per chunk in Stage D |
 | [cross-skill.md](../physics-paper-editing/cross-skill.md) | Routing, terminology, verifier handoff, ON RESUME |
+
+## Out of scope
+
+- Passages **≤12 sentences** — micro skill only; do not start macro Stages A–E
+- Section orchestrator writing or shipping chunk prose directly (structure-only moves in Stages B/C/E)
+- Skipping Stage B because chunks will be verified later
+- Nested sub-subagents beyond the micro skill's verifier Tasks
+- Multiple chunks in one Stage D turn — **one chunk per turn**
 
 ## Project-specific context (optional)
 
