@@ -40,6 +40,8 @@ Section-level editor for physics and mathematics LaTeX. **Orchestrates** the sta
 
 Shared routing, terminology, verifier handoff: [cross-skill.md](../physics-paper-editing/cross-skill.md).
 
+**First reply when this skill applies:** confirm whole section or >12-sentence scope, target section file, and whether resuming from `.physics-edit/` disk state.
+
 ## Purpose
 
 Edit a whole `\section{...}` block (or any passage **>12 sentences**) by:
