@@ -1,7 +1,7 @@
 {
-  "_comment": "Dry-run example for Notes/symdrome-specific correctable errors.tex § Q-correctable errors (lines ~81–153). Prose + display math; proofs chunked separately or excluded from prose chunks.",
+  "_comment": "Dry-run example for Notes/syndrome-specific correctable errors.tex § Q-correctable errors (lines ~81–153). Prose + display math; proofs chunked separately or excluded from prose chunks.",
   "section_slug": "Q-correctable-errors",
-  "tex_file": "Notes/symdrome-specific correctable errors.tex",
+  "tex_file": "Notes/syndrome-specific correctable errors.tex",
   "section_label": "sec:Q-correctable",
   "dry_run": {
     "prose_sentence_estimate": ">20",
@@ -20,7 +20,7 @@
       "order": 1,
       "sentence_count": 6,
       "tex_anchor": {
-        "file": "Notes/symdrome-specific correctable errors.tex",
+        "file": "Notes/syndrome-specific correctable errors.tex",
         "start_marker": "We now define the errors that the protocol",
         "end_marker": "when the initial state is logical."
       },
@@ -31,7 +31,7 @@
       "order": 2,
       "sentence_count": 2,
       "tex_anchor": {
-        "file": "Notes/symdrome-specific correctable errors.tex",
+        "file": "Notes/syndrome-specific correctable errors.tex",
         "start_marker": "Using the syndrome-specific errors defined",
         "end_marker": "Lemma~\\ref{prop:Q-correctability-KL-condition})."
       },

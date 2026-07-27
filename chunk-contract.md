@@ -1,5 +1,7 @@
 # Chunk contract (macro ↔ micro)
 
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. Read this file before Stage D.
+
 **Read with the Read tool** before Stage D.
 
 Each chunk invocation runs the **standalone** micro skill ([physics-paper-editing](../physics-paper-editing/SKILL.md)) on **one ≤12-sentence unit** — same steps 1–7 as a direct user quote, plus the extra inputs below. The section orchestrator **does not** inline-edit chunk prose.

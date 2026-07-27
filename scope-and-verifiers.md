@@ -35,7 +35,7 @@ Use `Phase 2 deep` slug from `session.md` § Verifier model profile when `user_c
 Task(
   subagent_type: "generalPurpose",
   readonly: true,
-  model: <deep slug from section brief>,
+  model: <deep slug from session.md § Verifier model profile>,
   description: "Section narrative verify: Stage <B|E>",
   prompt: <template below>
 )
@@ -81,7 +81,7 @@ Do not edit the text. Report each group in file order.
 Task(
   subagent_type: "generalPurpose",
   readonly: true,
-  model: <deep slug from section brief>,
+  model: <deep slug from session.md § Verifier model profile>,
   description: "Section math verify: Stage <B|E>",
   prompt: <template below>
 )

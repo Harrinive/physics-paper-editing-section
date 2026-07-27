@@ -58,7 +58,7 @@ Top-level object:
 ```json
 {
   "section_slug": "Q-correctable-errors",
-  "tex_file": "Notes/symdrome-specific correctable errors.tex",
+  "tex_file": "Notes/syndrome-specific correctable errors.tex",
   "section_label": "sec:Q-correctable",
   "created": "2026-06-11",
   "verifier_profile": {

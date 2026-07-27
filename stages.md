@@ -1,5 +1,7 @@
 # Stages A–E
 
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. This file is canonical for Stages A–E step detail.
+
 **Read with the Read tool** when running the macro pipeline ([SKILL.md](SKILL.md)). Micro handoff per chunk: [chunk-contract.md](chunk-contract.md) · shared rules: [cross-skill.md](../physics-paper-editing/cross-skill.md).
 
 ---
