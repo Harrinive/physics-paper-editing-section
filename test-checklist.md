@@ -1,6 +1,6 @@
 # End-to-end test checklist
 
-**Read before** declaring a section edit complete, or to validate a dry-run setup.
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read before** declaring a section edit complete, or to validate a dry-run setup.
 
 ## Dry-run (no .tex writes)
 

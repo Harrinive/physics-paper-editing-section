@@ -1,6 +1,6 @@
 # Automation & hooks (optional)
 
-**Read when** resuming multi-turn section edits or configuring hooks. Resume boot sequence also in [cross-skill.md](../physics-paper-editing/cross-skill.md) and macro [SKILL.md](SKILL.md) § ON RESUME.
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read when** resuming multi-turn section edits or configuring hooks. Resume boot sequence: [cross-skill.md](../physics-paper-editing/cross-skill.md) § ON RESUME and macro [SKILL.md](SKILL.md) § ON RESUME.
 
 ## Context reset between chunks (Stage D)
 

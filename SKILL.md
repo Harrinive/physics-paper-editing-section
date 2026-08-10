@@ -157,6 +157,16 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` — reference pa
 - Stage D in progress: **"Continue with next chunk `<id>`"** (context reset).
 - Ambiguity: one focused AskQuestion.
 
+## Project-specific context (optional)
+
+When the manuscript is the Ancilla Optimization / QEC error-budgeting paper:
+
+- **Topic:** decomposing logical infidelity into error-mechanism contributions for realistic QEC devices.
+- **Typical targets:** `Sections/*.tex`, `Notes/*.tex` standalone notes.
+- **Micro skill:** [physics-paper-editing](../physics-paper-editing/SKILL.md) for each chunk.
+
+For other papers, use only the generic workflow above.
+
 ## File map
 
 **Macro pipeline**
@@ -198,13 +208,3 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` — reference pa
 - Skipping Stage B because chunks will be verified later
 - Nested sub-subagents beyond the micro skill's verifier Tasks
 - Multiple chunks in one Stage D turn — **one chunk per turn**
-
-## Project-specific context (optional)
-
-When the manuscript is the Ancilla Optimization / QEC error-budgeting paper:
-
-- **Topic:** decomposing logical infidelity into error-mechanism contributions for realistic QEC devices.
-- **Typical targets:** `Sections/*.tex`, `Notes/*.tex` standalone notes.
-- **Micro skill:** [physics-paper-editing](../physics-paper-editing/SKILL.md) for each chunk.
-
-For other papers, use only the generic workflow above.

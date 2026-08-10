@@ -1,6 +1,6 @@
 # Scope parameter & section-scoped verifiers
 
-**Read with the Read tool** for Stages B and E.
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read with the Read tool** for Stages B and E.
 
 Section-scoped review reuses the micro skill's checklists **verbatim**:
 

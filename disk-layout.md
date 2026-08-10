@@ -1,6 +1,6 @@
 # Disk layout & manifest
 
-**Read with the Read tool** when Stages A or C run, or when resuming a section edit.
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read with the Read tool** when Stages A or C run, or when resuming a section edit.
 
 All cross-turn state lives under **`.physics-edit/<section-slug>/`** relative to the workspace root (or the `.tex` file's project root). Prefer a slug derived from `\section{...}` title or `\label{...}` (e.g. `Q-correctable-errors`).
 
