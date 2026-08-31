@@ -46,13 +46,15 @@ Use your platform's skill-creation workflow first, then port the workflow logic 
 1. Read `SKILL.md` and linked detail files to understand the workflow.
 2. Invoke your platform's skill-creation guide (table above) — do not hand-roll folder layout.
 3. **Map Cursor-only constructs** to your platform:
-   - `AskQuestion` → user-choice hard stops (edit gate at Stage A, verifier models).
+   - `AskQuestion` → one Stage A setup (job, pace, verifier models).
    - `Task` → delegation API; pass per-worker `model` when supported.
    - Linked checklists → read/preload before gates.
    - `.physics-edit/` → session/resume storage ([disk-layout.md](disk-layout.md), [automation.md](automation.md)).
-4. **Verifier model profile** — three verifier tiers (fast sentence · deep narrative+math · deep synthesizer); AskQuestion **once at Stage A**; persist slugs + `user_confirmed: true` in `session.md`; chunk agents inherit when confirmed ([../physics-paper-editing/cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile). Per-subagent models are platform-specific — see [micro README Adaptation checklist item 4](../physics-paper-editing/README.md#adaptation-checklist); if runtime pick isn't supported, use **named agent presets** instead of AskQuestion forms.
+4. **Editing setup** — ask once at Stage A for job, pace, and the three verifier
+   tiers; persist them with `user_confirmed: true`; chunks inherit the setup.
 5. **Compliance chain** — orchestrator publishes Task plan → each worker Step 0 COMPLIANCE → synthesizer-only `OVERALL` ([../physics-paper-editing/compliance-monitoring.md](../physics-paper-editing/compliance-monitoring.md)). **Orchestrator never** launches micro verifier Tasks or sets `OVERALL` — only micro chunk agents do ([../physics-paper-editing/cross-skill.md](../physics-paper-editing/cross-skill.md) § Writer ≠ grader).
-6. **Turn/resume** — default one chunk per turn; read `session.md` first on resume ([disk-layout.md](disk-layout.md)); honor frozen `job_mode` / `edit_gate` from Stage A; do **not** re-run micro edit-gate Q2 ([../physics-paper-editing/gate.md](../physics-paper-editing/gate.md)).
+6. **Turn/resume** — one chunk per turn; read `session.md` first; honor frozen
+   `job_mode`, `edit_gate`, and `pace`; do not re-run intake.
 7. Keep sibling install layout for both skills (`../physics-paper-editing/` links).
 8. Test on a short LaTeX passage before relying on the full verifier pipeline.
 

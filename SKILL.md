@@ -40,7 +40,8 @@ Section-level editor for physics and mathematics LaTeX. **Orchestrates** the sta
 
 Shared routing, terminology, verifier handoff: [cross-skill.md](../physics-paper-editing/cross-skill.md).
 
-**First reply when this skill applies:** confirm whole section or >12-sentence scope, target section file, and whether resuming from `.physics-edit/` disk state.
+**First reply:** confirm scope and target/resume state, then use one Stage A
+intake for job, pace, model profile, and material ambiguities.
 
 ## Purpose
 
@@ -61,7 +62,9 @@ Follow [cross-skill.md](../physics-paper-editing/cross-skill.md) § ON RESUME. D
 
 | Term | Meaning |
 |------|---------|
-| **Stage A–E** | Macro pipeline (intake → structural → chunk → loop → integrate) |
+| **Stage A–E** | Section pipeline (intake → structural → chunk → loop → integrate) |
+| **Fast pace** | Same per-chunk final checks; inline pre-edit source review; automatic progression when `/loop` is active |
+| **Full pace** | Independent source-sentence review before each polished chunk |
 | **Phase 1 / Phase 2** | Micro verification — runs **inside Stage D** per chunk only |
 | **Section orchestrator** | Macro main agent — structure only |
 | **Chunk agent** | Micro Producer for one chunk — sole author of chunk prose |
@@ -102,7 +105,8 @@ flowchart TD
 
 ```
 [ ] 0. Confirm scope — whole section or >12 sentences; not a micro-sized quote
-[ ] A. Intake — read section + neighbors; job_mode (edit gate Q2); section-brief.md + session.md (**User special requests** + AskQuestion verifier profile)
+[ ] A. Intake — read section + neighbors; one AskQuestion for job_mode, pace,
+    models, and important ambiguities; persist all choices
 [ ] B. Macro structural — section-scoped verifiers; apply structure-only fixes; update session.md
 [ ] C. Chunk — split ≤12 sentences; manifest.json (edit_gate if mixed); update session.md
 [ ] D. Loop — read session.md; pick next pending chunk; invoke micro skill; archive CHECKS; update manifest + session.md; END TURN
@@ -116,7 +120,7 @@ flowchart TD
 - **One chunk per turn** in Stage D — reset context before the next chunk.
 - **No nested sub-subagents** — only the micro skill launches verifier Tasks.
 - **Disk is memory** — persist `session.md` + `section-brief.md` + `manifest.json`; discard per-chunk verifier reports after PASS.
-- **Honor job_mode** — frozen at Stage A; do not re-run edit gate Q2 on resume.
+- Honor `job_mode` and `pace` — frozen at Stage A; do not re-ask on resume.
 - **Verifier models** — Stage A `AskQuestion` once; persist in `session.md` with `user_confirmed: true`. Chunk agents inherit only after confirmation — never from `manifest.json` or `section-brief.md` alone ([cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile).
 - **Boundary fixes** in Stage E go through the micro skill (≤12 sentences each).
 - Do not skip Stage B because chunks will be verified later.
@@ -154,7 +158,9 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` — reference pa
 
 ### 4. Next action
 
-- Stage D in progress: **"Continue with next chunk `<id>`"** (context reset).
+- Stage D, full pace: **"Reply continue for the next piece `<id>`."**
+- Stage D, fast pace with `/loop` active: state the next piece; do not ask the
+  user to continue. Still process exactly one piece per loop turn.
 - Ambiguity: one focused AskQuestion.
 
 ## Project-specific context (optional)

@@ -4,7 +4,10 @@
 
 ## Context reset between chunks (Stage D)
 
-**Default:** one chunk per agent turn. After a chunk PASSes, **end the turn**. The next turn reads only:
+**Hard cap:** one chunk per agent turn. After a chunk passes, end the turn.
+At full pace, ask the user to continue. At fast pace, do not require
+per-chunk approval: use `/loop` when active to start the next turn automatically.
+The next turn reads only:
 
 - **`session.md`** (first — procedure, job mode, next action)
 - `section-brief.md`
@@ -21,7 +24,8 @@ Per-chunk verifier reports are **not** carried forward.
 | "next chunk" | Same |
 | `/loop` (if configured) | Same on interval |
 
-Document in the Stage D report: **Next: continue with chunk `<id>`**.
+Document the next chunk. In fast pace with `/loop` active, say it will continue
+automatically; do not ask the user to reply.
 
 ## Context compaction recovery
 
@@ -29,7 +33,7 @@ If the chat was summarized, context feels stale, or the user asks anything about
 
 1. **Read `session.md` first** — before answering or editing.
 2. Follow its **Next action** and **Hard rules**.
-3. Do **not** re-run micro edit gate Q2 — honor `job_mode` / `edit_gate` from session or manifest.
+3. Do not re-run job or pace intake — honor `job_mode`, `edit_gate`, and `pace`.
 4. Honor **User special requests** — standing directives and deferred_edits.
 5. Do **not** launch verifier Tasks without `session.md` § Verifier model profile `user_confirmed: true` — AskQuestion first if false.
 6. Do **not** improvise a shorter editing workflow.
@@ -48,6 +52,10 @@ Orchestrator algorithm (each resume):
 5. Else if all pass → Stage E (or report DONE if E complete)
 6. Rewrite session.md before END TURN
 ```
+
+If the current chunk fails, leave it `in_progress`, stop automatic advancement,
+and resume that same chunk. Never advance to a later pending chunk after a
+failure.
 
 ## Hook awareness (`check-editing-session.sh`)
 
@@ -75,8 +83,10 @@ Per-chunk CHECKS enforcement is sufficient for prose quality — the orchestrato
 If using Cursor's `/loop` command, configure a prompt such as:
 
 ```
-Continue physics-paper-editing-section Stage D: read session.md and manifest at
-.physics-edit/<slug>/; process exactly one pending chunk; rewrite session.md; END TURN.
+Continue physics-paper-editing-section Stage D at fast pace: read session.md
+and manifest at .physics-edit/<slug>/; process exactly one in-progress or
+pending chunk; on PASS rewrite state and end the turn; on FAIL keep the same
+chunk in_progress, report the blocker, and stop automatic advancement.
 ```
 
 Replace `<slug>` with the active section slug each session.

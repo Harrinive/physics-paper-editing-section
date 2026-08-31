@@ -12,11 +12,12 @@
 ## Job mode
 
 - **job_mode:** `polish` | `rewrite` | `mixed`
+- **pace:** `fast` | `full`
 - **Rationale:** <one line — see `section-brief.md` § Job mode>
 - **rewrite_chunks:** `[c01, …]` — only when `job_mode: mixed`; omit otherwise
 - **Phase 1:** ON (polish) | OFF (rewrite) | per-chunk (mixed — check next chunk `edit_gate`)
 
-Do **not** re-run micro edit gate Q2 on resume — inherit `edit_gate` from this file or manifest.
+Do not re-run micro job or pace intake on resume; inherit both values.
 
 ## User special requests
 
@@ -30,7 +31,7 @@ Standing editing constraints from the user — **read every turn**; pass to ever
 
 **Hard rule:** If a verifier or edit would violate **standing** requests, apply only minor fixes, note the conflict in **deferred_edits**, and report to the user — do not silently override.
 
-## Verifier model profile (Stage A — AskQuestion required)
+## Verifier model profile (Stage A — single Editing setup required)
 
 **Hard stop:** Do **not** launch any verifier `Task` until `user_confirmed: true` below.
 
@@ -41,7 +42,8 @@ Standing editing constraints from the user — **read every turn**; pass to ever
 | Phase 2 deep | `<slug>` | Narrative + math verifier Tasks; macro Stages B/E |
 | Phase 2 synth | `<slug>` | Synthesizer (`OVERALL`; never fast tier) |
 
-- **user_confirmed:** `true` | `false` — set `true` **only** after Stage A `AskQuestion` (*Verifier model profile*) returns
+- **user_confirmed:** `true` | `false` — set `true` only after Stage A
+  `AskQuestion` (*Editing setup*) returns
 - **confirmed_at:** Stage A · `<YYYY-MM-DD>` (or `—` if not yet confirmed)
 - **manifest mirror:** `manifest.json` → `verifier_profile` must match this table when confirmed
 
@@ -56,7 +58,7 @@ Copied from synthesizer CHECKS after each chunk PASS — orchestrator does **not
 - **chunk:** `<id>`
 - **compliance_orchestrator_plan:** PASS | FAIL
 - **compliance_worker_reports:** PASS | FAIL
-- **phase1_sentence_tasks:** `<launched>/<required>` (e.g. `3/3`)
+- **phase1_sentence_tasks:** `INLINE` (fast polish) | `<launched>/<required>` (full polish) | `0` (rewrite)
 - **phase2_sentence_tasks:** `<launched>/<changed>` (e.g. `0/0`)
 - **batched:** `false` | `<note if §3.1 only>`
 
@@ -90,7 +92,7 @@ If `compliance_*: FAIL` on last turn, **re-run that chunk** with corrected Task 
 - One chunk per turn; **END TURN** after chunk PASS
 - Orchestrator writes structure only; chunk prose via micro skill only
 - Micro Phase 2 **always** required for shipped prose
-- Honor **job_mode** / `edit_gate` — do not re-run edit gate Q2 on resume
+- Honor `job_mode`, `edit_gate`, and `pace` — do not re-run intake on resume
 - Honor **User special requests** — standing directives override default polish aggressiveness
 - **Verifier models:** use slugs from § Verifier model profile only when `user_confirmed: true`; else AskQuestion first
 - Update this file + manifest before END TURN

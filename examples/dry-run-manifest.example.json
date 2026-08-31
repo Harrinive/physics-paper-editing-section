@@ -3,6 +3,8 @@
   "section_slug": "Q-correctable-errors",
   "tex_file": "Notes/syndrome-specific correctable errors.tex",
   "section_label": "sec:Q-correctable",
+  "job_mode": "polish",
+  "pace": "fast",
   "dry_run": {
     "prose_sentence_estimate": ">20",
     "macro_eligible": true,

@@ -19,7 +19,7 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 ## Full acceptance (after Stage E)
 
 ```
-[ ] section-brief.md exists with ## Job mode and verifier profile mirror
+[ ] section-brief.md exists with job_mode, pace, and verifier profile mirror
 [ ] session.md exists; pipeline_stage matches manifest state; § Verifier model profile has `user_confirmed: true` before any verifier Task (brief/manifest alone insufficient — cross-skill.md)
 [ ] manifest.json — every chunk status: pass
 [ ] chunks/*.checks — one file per chunk with OVERALL: PASS
@@ -39,9 +39,12 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 [ ] Stage D never processes two chunks in one turn
 [ ] Verifier profile asked once in Stage A, not re-asked per chunk
 [ ] Orchestrator did not author chunk prose without micro PASS
-[ ] Phase 1 polish chunks: CHECKS or Mode line shows N sentence Tasks (not one batched Task)
+[ ] Fast polish chunks: Task plan records `phase1_sentence_tasks: INLINE`
+[ ] Full polish chunks: Task plan shows N sentence Tasks (not one batched Task)
 [ ] Section orchestrator did not launch micro verifier Tasks directly
-[ ] Cold resume from session.md only — agent honors job_mode without re-running Q2
+[ ] Cold resume honors job_mode and pace without re-running intake
+[ ] Fast `/loop`: one chunk per turn, automatic next turn only after PASS
+[ ] Fast chunk FAIL: same chunk remains in_progress; no later chunk starts
 [ ] No verifier Task launched without Stage A AskQuestion confirmation (`user_confirmed: true`)
 ```
 
@@ -57,7 +60,7 @@ Expected flow: Stage A brief → Stage B structural on full section → Stage C 
 
 | Symptom | Action |
 |---------|--------|
-| Agent forgot workflow / improvised edits | Read `session.md` first; do not re-run edit gate Q2; follow Next action |
+| Agent forgot workflow / improvised edits | Read `session.md` first; do not re-run intake; follow Next action |
 | User directive ignored (major edit shipped) | Re-read § User special requests; move violation to deferred_edits; revert or ask user |
 | Verifier Tasks without model AskQuestion | Check `session.md` `user_confirmed`; if false, AskQuestion before any Task |
 | Chunk stuck `in_progress` | Reset to `pending`; re-run Stage D for that id |

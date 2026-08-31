@@ -40,6 +40,7 @@ Write at intake. Template:
 
 ## Job mode (Stage A — frozen for section)
 - **job_mode:** polish | rewrite | mixed
+- **pace:** fast | full
 - **Rationale:** <1–2 sentences — user intent + placeholder scan>
 - **rewrite_chunks:** [c01, …] — only when mixed
 
@@ -61,6 +62,8 @@ Top-level object:
   "tex_file": "Notes/syndrome-specific correctable errors.tex",
   "section_label": "sec:Q-correctable",
   "created": "2026-06-11",
+  "job_mode": "polish",
+  "pace": "fast",
   "verifier_profile": {
     "sentence": "composer-2.5-fast",
     "deep": "claude-4.6-sonnet-medium-thinking",
@@ -99,7 +102,7 @@ Each **ChunkRecord**:
 | `order` | Processing order in Stage D |
 | `tex_anchor` | **Text anchors**, not line numbers — lines drift as earlier chunks change length |
 | `status` | `pending` \| `in_progress` \| `pass` |
-| `edit_gate` | Optional — `polish` \| `rewrite`. Required on each chunk when `job_mode: mixed` in session/brief. Omit or `polish` when section is polish-only. Micro edit gate Q2 is **not** re-run when supplied. |
+| `edit_gate` | Optional — `polish` \| `rewrite`. Required on each chunk when `job_mode: mixed`; do not re-run job intake when supplied. |
 | `checks_path` | Set on pass, e.g. `chunks/c03.checks` |
 | `summary` | Two-line what-changed, set on pass |
 
@@ -124,21 +127,23 @@ Create from [examples/session.example.md](examples/session.example.md) at Stage 
 | Section | Purpose |
 |---------|---------|
 | MANDATORY read order | Boot sequence for cold resume after context compaction |
-| Job mode | Frozen edit-gate Q2 outcome: `polish` \| `rewrite` \| `mixed` + `rewrite_chunks` |
+| Job mode | Frozen `polish` \| `rewrite` \| `mixed` + `rewrite_chunks` |
+| Pace | Frozen `fast` \| `full`; passed to every chunk |
 | User special requests | Standing user directives + deferred major edits — honor every turn |
 | Verifier model profile | Stage A AskQuestion slugs + `user_confirmed` — required before any verifier Task |
 | Phase 1 reminder | ON / OFF / per-chunk — do not re-derive from gate.md |
 | Last turn compliance | From synthesizer CHECKS: `compliance_orchestrator_plan`, `compliance_worker_reports`, `phase1`/`phase2` task counts — **not** written by orchestrator |
 | Current position | `pipeline_stage`, progress, `next_chunk_id`, `last_completed` |
-| Hard rules | One chunk/turn, honor job_mode, END TURN |
+| Hard rules | One chunk/turn, honor job_mode + pace, END TURN |
 | Next action | Single imperative for this turn only |
 
 **Authority rules:**
 
 - `manifest.json` is authoritative for chunk `status` and per-chunk progress.
-- `session.md` is authoritative for `job_mode`, verifier profile, user special requests, and **next action**.
+- `session.md` is authoritative for `job_mode`, `pace`, verifier profile, user special requests, and **next action**.
 - The orchestrator updates **both** each turn. `session.md` reflects manifest state but is not the sole source for chunk status.
-- **`job_mode` is frozen at Stage A** (change only if user explicitly revises scope).
+- `job_mode` and `pace` are frozen at Stage A (change only if the user
+  explicitly revises setup).
 
 ## Resuming
 
