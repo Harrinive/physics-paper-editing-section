@@ -25,9 +25,9 @@ Do **not** add `Scope:` to the micro skill's own prompts — only macro-launched
 | B — macro structural | 1 narrative + 0–1 math (if math present) | yes |
 | E — integration | 1 narrative + 0–1 math, boundary-focused | yes |
 
-Use `Phase 2 deep` slug from `session.md` § Verifier model profile when `user_confirmed: true`. Launch in parallel when practical.
+Use the `deep` slug from `session.md` § Verifier model profile when `user_confirmed: true`. Launch in parallel with `run_in_background: true` when practical. Harvest findings the same way as micro jobs if the user keeps editing.
 
-**Hard stop:** if `user_confirmed: false`, run Stage A `AskQuestion` before launching section verifier Tasks ([cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile).
+If `user_confirmed: false`, use disclosed defaults or AskQuestion before launching ([cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile).
 
 ## Narrative verifier prompt (Scope: section)
 
@@ -35,6 +35,7 @@ Use `Phase 2 deep` slug from `session.md` § Verifier model profile when `user_c
 Task(
   subagent_type: "generalPurpose",
   readonly: true,
+  run_in_background: true,
   model: <deep slug from session.md § Verifier model profile>,
   description: "Section narrative verify: Stage <B|E>",
   prompt: <template below>
@@ -81,6 +82,7 @@ Do not edit the text. Report each group in file order.
 Task(
   subagent_type: "generalPurpose",
   readonly: true,
+  run_in_background: true,
   model: <deep slug from session.md § Verifier model profile>,
   description: "Section math verify: Stage <B|E>",
   prompt: <template below>

@@ -7,7 +7,8 @@
 1. **This file** (`session.md`)
 2. `manifest.json`
 3. `section-brief.md`
-4. Skill files per pipeline stage below
+4. `jobs/*/agents.json` if any chunk is `checking`
+5. Skill files per pipeline stage below
 
 ## Job mode
 
@@ -15,7 +16,6 @@
 - **pace:** `fast` | `full`
 - **Rationale:** <one line — see `section-brief.md` § Job mode>
 - **rewrite_chunks:** `[c01, …]` — only when `job_mode: mixed`; omit otherwise
-- **Phase 1:** ON (polish) | OFF (rewrite) | per-chunk (mixed — check next chunk `edit_gate`)
 
 Do not re-run micro job or pace intake on resume; inherit both values.
 
@@ -23,54 +23,46 @@ Do not re-run micro job or pace intake on resume; inherit both values.
 
 Standing editing constraints from the user — **read every turn**; pass to every micro chunk invocation and section verifier prompt.
 
-- **standing:** (bullet list — verbatim or faithful paraphrase of user directives at task creation)
-  - e.g. *Do only minor edits in place; do not restructure or rewrite whole paragraphs without approval.*
-  - e.g. *Report any need for major edits (reorder, new argument, substantial rephrase) in the stage report — do not ship without user OK.*
-- **added:** `<YYYY-MM-DD>` Stage A (append dated bullets when user adds mid-run)
-- **deferred_edits:** (optional) major edits flagged but not applied — chunk id, one-line description, awaiting user
+- **standing:** (bullet list)
+- **added:** `<YYYY-MM-DD>` Stage A
+- **deferred_edits:** (optional) major edits flagged but not applied
 
-**Hard rule:** If a verifier or edit would violate **standing** requests, apply only minor fixes, note the conflict in **deferred_edits**, and report to the user — do not silently override.
+**Hard rule:** If a verifier or edit would violate **standing** requests, apply only minor fixes, note the conflict in **deferred_edits**, and report — do not silently override.
 
-## Verifier model profile (Stage A — single Editing setup required)
-
-**Hard stop:** Do **not** launch any verifier `Task` until `user_confirmed: true` below.
+## Verifier model profile
 
 | Role | Slug | Used for |
 |------|------|----------|
-| Phase 1 sentence | `<slug>` | Phase 1 SUBAGENTS (polish only); may equal Phase 2 sentence |
-| Phase 2 sentence | `<slug>` | Changed-sentence verifier Tasks; default for Phase 1 when row above omitted |
-| Phase 2 deep | `<slug>` | Narrative + math verifier Tasks; macro Stages B/E |
-| Phase 2 synth | `<slug>` | Synthesizer (`OVERALL`; never fast tier) |
+| sentence | `<slug>` | Background changed-sentence Tasks |
+| deep | `<slug>` | Narrative + math; Stages B/E |
+| synth | `<slug>` | Job-round synthesizer (`OVERALL`; never fast tier) |
 
-- **user_confirmed:** `true` | `false` — set `true` only after Stage A
-  `AskQuestion` (*Editing setup*) returns
-- **confirmed_at:** Stage A · `<YYYY-MM-DD>` (or `—` if not yet confirmed)
-- **manifest mirror:** `manifest.json` → `verifier_profile` must match this table when confirmed
+- **user_confirmed:** `true` | `false` — `true` after inherit, disclosed defaults, or AskQuestion
+- **confirmed_at:** Stage A · `<YYYY-MM-DD>` (or `—`)
+- **manifest mirror:** `manifest.json` → `verifier_profile` must match when confirmed
 
-On resume: if `user_confirmed: false` → **AskQuestion before any verifier Task** (Stages B, D, E). Never auto-select slugs from brief/manifest alone.
-
-Micro chunk agents inherit this profile when `user_confirmed: true` — document `Verifier profile: inherited from session.md (Stage A confirmed)`.
+On resume: if `user_confirmed: false`, use disclosed defaults or AskQuestion before Tasks. Never silently invent slugs from brief/manifest alone.
 
 ## Last turn compliance
 
-Copied from synthesizer CHECKS after each chunk PASS — orchestrator does **not** invent these values.
+Copied from synthesizer CHECKS — orchestrator does **not** invent these values.
 
 - **chunk:** `<id>`
+- **job_id:** `<id>`
 - **compliance_orchestrator_plan:** PASS | FAIL
 - **compliance_worker_reports:** PASS | FAIL
-- **phase1_sentence_tasks:** `INLINE` (fast polish) | `<launched>/<required>` (full polish) | `0` (rewrite)
-- **phase2_sentence_tasks:** `<launched>/<changed>` (e.g. `0/0`)
-- **batched:** `false` | `<note if §3.1 only>`
-
-If `compliance_*: FAIL` on last turn, **re-run that chunk** with corrected Task plan before advancing.
+- **phase1_sentence_tasks:** `0`
+- **phase2_sentence_tasks:** `<launched>/<changed>`
+- **OVERALL:** PASS | CONFLICTS | PARTIAL
 
 ## Current position
 
 - **pipeline_stage:** A | B | C | D | E | done
-- **progress:** `<N>/<M> pass`
-- **next_chunk_id:** `<id>` or `—` (Stage E / done)
-- **last_completed:** `<id>` — <one-line summary from manifest>
-- **last_mode_line:** (optional) `<verbatim Mode line from last turn>`
+- **in_file:** `<N>/<M>` pieces drafted
+- **checking:** `[c01, …]` or `—`
+- **next_chunk_id:** `<id>` or `—`
+- **last_completed:** `<id>` — <one-line summary>
+- **last_mode_line:** (optional) `<verbatim Mode line>`
 
 ## File map
 
@@ -78,32 +70,27 @@ If `compliance_*: FAIL` on last turn, **re-run that chunk** with corrected Task 
 |------|------|
 | `Notes/example.tex` | Target TeX |
 | `section-brief.md` | Content, notation, job mode rationale |
-| `manifest.json` | Chunk state, optional per-chunk `edit_gate` |
-| `chunks/*.checks` | Archived micro CHECKS per passed chunk |
-| `~/.cursor/skills/physics-paper-editing-section/SKILL.md` | Macro orchestrator |
-| `~/.cursor/skills/physics-paper-editing-section/stages.md` | Stages A–E steps |
-| `~/.cursor/skills/physics-paper-editing-section/chunk-contract.md` | Stage D micro handoff |
-| `~/.cursor/skills/physics-paper-editing/cross-skill.md` | Micro ↔ macro routing and canonical rules |
-| `~/.cursor/skills/physics-paper-editing/gate.md` | Edit gate Q2 reference (frozen at Stage A) |
-| `~/.cursor/skills/physics-paper-editing/SKILL.md` | Micro skill (Stage D per chunk) |
+| `manifest.json` | Chunk state |
+| `jobs/<id>/` | Snapshot + findings ledger |
+| `chunks/*.checks` | Archived CHECKS per passed chunk |
 
 ## Hard rules (orchestrator)
 
-- One chunk per turn; **END TURN** after chunk PASS
-- Orchestrator writes structure only; chunk prose via micro skill only
-- Micro Phase 2 **always** required for shipped prose
-- Honor `job_mode`, `edit_gate`, and `pace` — do not re-run intake on resume
-- Honor **User special requests** — standing directives override default polish aggressiveness
-- **Verifier models:** use slugs from § Verifier model profile only when `user_confirmed: true`; else AskQuestion first
-- Update this file + manifest before END TURN
+- One **job** per marked region; next piece may start while another is checking
+- Orchestrator writes structure only; chunk prose via micro coworker loop
+- Do not wait for `PASS` before ending a draft-ready turn
+- Honor `job_mode`, `edit_gate`, and `pace`
+- Honor **User special requests**
+- User-facing copy: workbench UX — no “reply continue”
+- Update this file + manifest before ending the turn
 
 ## Skill read order by stage
 
 | Stage | Read |
 |-------|------|
 | A–C, E | macro `SKILL.md`, `stages.md`, `disk-layout.md`; B/E also `scope-and-verifiers.md` |
-| D | macro `chunk-contract.md` + micro `SKILL.md` for current chunk only |
+| D | `chunk-contract.md` + micro `SKILL.md` + `coworker-loop.md` |
 
 ## Next action
 
-<single imperative sentence — e.g. Process chunk c03 only with edit_gate polish via micro skill; update manifest and this file; END TURN.>
+<single imperative — e.g. Wake job j-c03 if checking; else draft pending c04 with marks and background verify; end turn.>

@@ -26,7 +26,8 @@
         "start_marker": "We now define the errors that the protocol",
         "end_marker": "when the initial state is logical."
       },
-      "status": "pending"
+      "status": "pending",
+      "job_id": null
     },
     {
       "chunk_id": "c02",
@@ -37,7 +38,8 @@
         "start_marker": "Using the syndrome-specific errors defined",
         "end_marker": "Lemma~\\ref{prop:Q-correctability-KL-condition})."
       },
-      "status": "pending"
+      "status": "pending",
+      "job_id": null
     }
   ]
 }

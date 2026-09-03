@@ -4,7 +4,7 @@ Cursor skill for editing a whole LaTeX section or longer passage in physics and 
 
 ## What it does
 
-This skill applies **global edits and suggestions** at section scale, then **orchestrates local edits** through the micro skill — separating the section into shorter chunks and applying the edit-and-verify treatment for each chunk.
+This skill applies **global edits and suggestions** at section scale, then **orchestrates local drafts** through the micro coworker loop — chunking the section and writing each piece into the file with background checks. The next piece may start without waiting for the previous one to pass.
 
 **Scope:** whole LaTeX section or any passage **>12 sentences**. For shorter material, use the companion **micro skill** [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing).
 
@@ -50,10 +50,11 @@ Use your platform's skill-creation workflow first, then port the workflow logic 
    - `Task` → delegation API; pass per-worker `model` when supported.
    - Linked checklists → read/preload before gates.
    - `.physics-edit/` → session/resume storage ([disk-layout.md](disk-layout.md), [automation.md](automation.md)).
-4. **Editing setup** — ask once at Stage A for job, pace, and the three verifier
-   tiers; persist them with `user_confirmed: true`; chunks inherit the setup.
+4. **Editing setup** — freeze job_mode at Stage A; inherit or default pace and
+   the three verifier tiers (`user_confirmed: true`); chunks inherit the setup.
 5. **Compliance chain** — orchestrator publishes Task plan → each worker Step 0 COMPLIANCE → synthesizer-only `OVERALL` ([../physics-paper-editing/compliance-monitoring.md](../physics-paper-editing/compliance-monitoring.md)). **Orchestrator never** launches micro verifier Tasks or sets `OVERALL` — only micro chunk agents do ([../physics-paper-editing/cross-skill.md](../physics-paper-editing/cross-skill.md) § Writer ≠ grader).
-6. **Turn/resume** — one chunk per turn; read `session.md` first; honor frozen
+6. **Turn/resume** — draft+mark a piece and end the turn (next piece may start
+   while another job is checking); read `session.md` first; honor frozen
    `job_mode`, `edit_gate`, and `pace`; do not re-run intake.
 7. Keep sibling install layout for both skills (`../physics-paper-editing/` links).
 8. Test on a short LaTeX passage before relying on the full verifier pipeline.
