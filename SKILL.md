@@ -185,7 +185,6 @@ For other papers, use only the generic workflow above.
 | Skill | When |
 |-------|------|
 | **physics-paper-editing** | Micro skill — invoked per chunk in Stage D |
-| [cross-skill.md](../physics-paper-editing/cross-skill.md) | Routing, terminology, verifier handoff, ON RESUME |
 
 ## Out of scope
 
