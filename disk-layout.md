@@ -1,21 +1,26 @@
 # Disk layout & manifest
 
-**Read with the Read tool** when Stages A or C run, or when resuming a section edit.
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read with the Read tool** when Stages A or C run, when a Stage D job starts, or when resuming.
 
-All cross-turn state lives under **`.physics-edit/<section-slug>/`** relative to the workspace root (or the `.tex` file's project root). Prefer a slug derived from `\section{...}` title or `\label{...}` (e.g. `Q-correctable-errors`).
+All cross-turn state lives under **`.physics-edit/<section-slug>/`** relative to the workspace root (or the `.tex` file's project root). Prefer a slug derived from `\section{...}` title or `\label{...}`.
 
 ## Directory layout
 
 ```
 .physics-edit/<section-slug>/
-├── session.md              # boot script — read first on every resume (procedure + job mode + pointer)
-├── section-brief.md        # Stage A — message, placement, notation, job mode rationale, verifier profile
-├── manifest.json           # ordered chunk records
-└── chunks/
-    └── <chunk_id>.checks   # archived micro <!-- CHECKS --> block per passed chunk
+├── session.md
+├── section-brief.md
+├── manifest.json
+├── findings-ledger.md          # Stage B/E structural notes
+├── chunks/
+│   └── <chunk_id>.checks       # archived job-round CHECKS when a chunk PASSes
+└── jobs/
+    └── <job_id>/               # snapshot.tex, sentences.json, findings.jsonl, round.md, agents.json
 ```
 
-**Git:** add `.physics-edit/` to the project `.gitignore` if edits are ephemeral; commit manifest + brief + session if you want resumable section edits in version control.
+Job folder schema: [job-state.md](../physics-paper-editing/job-state.md).
+
+**Git:** add `.physics-edit/` to the project `.gitignore` if edits are ephemeral.
 
 ## section-brief.md (Stage A)
 
@@ -40,37 +45,36 @@ Write at intake. Template:
 
 ## Job mode (Stage A — frozen for section)
 - **job_mode:** polish | rewrite | mixed
-- **Rationale:** <1–2 sentences — user intent + placeholder scan>
+- **pace:** fast | full
+- **Rationale:** <1–2 sentences>
 - **rewrite_chunks:** [c01, …] — only when mixed
 
 ## Verifier model profile (Stage A — mirror of session.md)
-- Phase 2 sentence: <slug Q1> — also used for Phase 1 SUBAGENTS unless overridden in session.md
-- Phase 2 deep: <slug Q2> — narrative + math (macro Stages B/E use this slug)
-- Phase 2 synth: <slug Q3>
+- Sentence: <slug>
+- Deep: <slug> — narrative + math (Stages B/E too)
+- Synth: <slug>
 ```
 
-Canonical handoff rules: [cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile. The orchestrator passes slugs to micro chunk invocations **only when** `session.md` has `user_confirmed: true` from Stage A `AskQuestion`.
+Pass slugs to micro chunks only when `session.md` has `user_confirmed: true`.
 
 ## manifest.json schema
-
-Top-level object:
 
 ```json
 {
   "section_slug": "Q-correctable-errors",
-  "tex_file": "Notes/symdrome-specific correctable errors.tex",
+  "tex_file": "Notes/example.tex",
   "section_label": "sec:Q-correctable",
-  "created": "2026-06-11",
+  "created": "2026-09-03",
+  "job_mode": "polish",
+  "pace": "fast",
   "verifier_profile": {
     "sentence": "composer-2.5-fast",
     "deep": "claude-4.6-sonnet-medium-thinking",
     "synth": "claude-4.6-sonnet-medium-thinking"
   },
-  "chunks": [ "<ChunkRecord>", "..." ]
+  "chunks": []
 }
 ```
-
-`verifier_profile` keys (`sentence`, `deep`, `synth`) mirror `session.md` § Verifier model profile Phase 2 rows. Use only when `user_confirmed: true`.
 
 Each **ChunkRecord**:
 
@@ -86,68 +90,65 @@ Each **ChunkRecord**:
   },
   "status": "pending",
   "edit_gate": "polish",
+  "job_id": null,
   "checks_path": null,
   "summary": null
 }
 ```
 
-### Field notes
-
 | Field | Purpose |
 |-------|---------|
-| `chunk_id` | Stable id (`c01`, `c02`, …) — never reuse after pass |
-| `order` | Processing order in Stage D |
-| `tex_anchor` | **Text anchors**, not line numbers — lines drift as earlier chunks change length |
-| `status` | `pending` \| `in_progress` \| `pass` |
-| `edit_gate` | Optional — `polish` \| `rewrite`. Required on each chunk when `job_mode: mixed` in session/brief. Omit or `polish` when section is polish-only. Micro edit gate Q2 is **not** re-run when supplied. |
+| `chunk_id` | Stable id (`c01`, `c02`, …) |
+| `order` | Default draft order |
+| `tex_anchor` | Text anchors, not line numbers |
+| `status` | `pending` \| `drafted` \| `checking` \| `conflict` \| `pass` |
+| `edit_gate` | Required on each chunk when `job_mode: mixed` |
+| `job_id` | Active or last `.physics-edit/.../jobs/<id>` |
 | `checks_path` | Set on pass, e.g. `chunks/c03.checks` |
 | `summary` | Two-line what-changed, set on pass |
 
 ### Status transitions
 
 ```
-pending → in_progress   (orchestrator picks chunk for this turn)
-in_progress → pass      (micro OVERALL: PASS; CHECKS archived)
-in_progress → pending   (micro FAIL abandoned this turn — rare; reset on retry)
+pending → drafted     (micro wrote marked interior)
+drafted → checking    (background job launched)
+checking → checking   (merge round; still dirty / open labels)
+checking → conflict   (OVERALL: CONFLICTS — user decision)
+conflict → checking   (user resolved; new wave)
+checking → pass       (OVERALL: PASS, unmarked, no running Tasks)
+pass → checking       (Stage E boundary fix re-opens the span)
 ```
 
-Only one chunk should be `in_progress` at a time.
+More than one chunk may be `checking` at a time (one job per marked region).
 
 ## Archiving CHECKS
 
-On chunk PASS, write the synthesizer's verbatim `<!-- CHECKS ... -->` block to `chunks/<chunk_id>.checks`. The orchestrator's context keeps only the 2-line `summary` — not full verifier reports.
+On chunk `pass`, write the synthesizer's verbatim `<!-- CHECKS ... -->` to `chunks/<chunk_id>.checks`. Keep only the 2-line `summary` in orchestrator context.
 
-## session.md (Stage A — rewrite every turn)
+## session.md (rewrite every turn)
 
-Create from [examples/session.example.md](examples/session.example.md) at Stage A. **Read first on every resume** — before manifest or brief.
+Create from [examples/session.example.md](examples/session.example.md) at Stage A. **Read first on every resume.**
 
 | Section | Purpose |
 |---------|---------|
-| MANDATORY read order | Boot sequence for cold resume after context compaction |
-| Job mode | Frozen edit-gate Q2 outcome: `polish` \| `rewrite` \| `mixed` + `rewrite_chunks` |
-| User special requests | Standing user directives + deferred major edits — honor every turn |
-| Verifier model profile | Stage A AskQuestion slugs + `user_confirmed` — required before any verifier Task |
-| Phase 1 reminder | ON / OFF / per-chunk — do not re-derive from gate.md |
-| Last turn compliance | From synthesizer CHECKS: `compliance_orchestrator_plan`, `compliance_worker_reports`, `phase1`/`phase2` task counts — **not** written by orchestrator |
-| Current position | `pipeline_stage`, progress, `next_chunk_id`, `last_completed` |
-| Hard rules | One chunk/turn, honor job_mode, END TURN |
-| Next action | Single imperative for this turn only |
+| MANDATORY read order | Boot sequence |
+| Job mode | Frozen `polish` \| `rewrite` \| `mixed` |
+| Pace | Frozen `fast` \| `full` |
+| User special requests | Standing + deferred_edits |
+| Verifier model profile | Slugs + `user_confirmed` |
+| Last turn compliance | From CHECKS — not invented by the orchestrator |
+| Current position | `pipeline_stage`, how many pieces are in the file / still being read |
+| Hard rules | One job per mark; honor job_mode + pace; no “reply continue” |
+| Next action | Single imperative |
 
-**Authority rules:**
-
-- `manifest.json` is authoritative for chunk `status` and per-chunk progress.
-- `session.md` is authoritative for `job_mode`, verifier profile, user special requests, and **next action**.
-- The orchestrator updates **both** each turn. `session.md` reflects manifest state but is not the sole source for chunk status.
-- **`job_mode` is frozen at Stage A** (change only if user explicitly revises scope).
+**Authority:** `manifest.json` for chunk `status`; `session.md` for job_mode, pace, profile, special requests, next action.
 
 ## Resuming
 
 1. Read **`session.md`** first.
-2. Read `manifest.json` + `section-brief.md`.
-3. Read skill files per `session.md` skill read order.
-4. Execute **Next action**.
-5. If any `in_progress`, resume that chunk (or reset to `pending` if the turn was interrupted).
-6. Else pick lowest `order` with `status: pending` → Stage D.
-7. Else if all pass → Stage E (or report DONE if E complete).
-8. **Rewrite `session.md`** before END TURN.
-9. Skip Stages A–C unless the user requests a re-run.
+2. Read `manifest.json` + `section-brief.md` + any `jobs/*/agents.json`.
+3. If any job is `checking` → micro wake protocol first.
+4. Else if user said **next piece** → first `pending` by order.
+5. Else if all `pass` → Stage E (or DONE).
+6. Rewrite `session.md` before ending the turn.
+7. Skip Stages A–C unless the user requests a re-run.

@@ -1,10 +1,8 @@
 # End-to-end test checklist
 
-**Read before** declaring a section edit complete, or to validate a dry-run setup.
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read before** declaring a section edit complete, or to validate a dry-run setup.
 
 ## Dry-run (no .tex writes)
-
-Use to verify a section is macro-eligible before Stages A–E:
 
 ```
 [ ] Count sentences in target section — must be >12 for macro (or user wants whole section)
@@ -19,48 +17,50 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 ## Full acceptance (after Stage E)
 
 ```
-[ ] section-brief.md exists with ## Job mode and verifier profile mirror
-[ ] session.md exists; pipeline_stage matches manifest state; § Verifier model profile has `user_confirmed: true` before any verifier Task (brief/manifest alone insufficient — cross-skill.md)
+[ ] section-brief.md exists with job_mode, pace, and verifier profile mirror
+[ ] session.md exists; pipeline_stage matches manifest; profile resolved
 [ ] manifest.json — every chunk status: pass
-[ ] chunks/*.checks — one file per chunk with OVERALL: PASS
-[ ] chunks/*.checks — `compliance_orchestrator_plan: PASS` and `compliance_worker_reports: PASS`; one `sentence_S*k*:` line per label (no `sentence_S1-S3` ranges)
-[ ] session.md § Last turn compliance matches last chunk CHECKS
-[ ] Source .tex — chunk anchors resolve; no [INSERT PROSE] placeholders remain
-[ ] Stage E integration — narrative + math verifiers: no unresolved FAIL
-[ ] Response includes <!-- SECTION DONE ... --> with integration: PASS
-[ ] Every prose change in the section was verified by micro Phase 2 (trace via CHECKS files)
+[ ] PPE marks removed from passed chunks
+[ ] chunks/*.checks — one file per passed chunk with OVERALL: PASS
+[ ] chunks/*.checks — compliance_* PASS; one sentence_S*k*: line per label (no ranges)
+[ ] jobs/<id>/findings.jsonl exists for each job that ran
+[ ] Source .tex — anchors resolve; no [INSERT PROSE] placeholders remain
+[ ] Stage E integration — no unresolved FAIL
+[ ] Audit drawer includes <!-- SECTION DONE ... --> with integration: PASS
 ```
 
 ## Regression checks
 
 ```
-[ ] Micro skill works standalone on ≤12-sentence quotes (no .physics-edit/, full AskQuestion path — cross-skill.md § Verifier model profile · standalone)
-[ ] Micro gate routes >12 sentences to this macro skill (cross-skill.md § Routing)
-[ ] Stage D never processes two chunks in one turn
-[ ] Verifier profile asked once in Stage A, not re-asked per chunk
-[ ] Orchestrator did not author chunk prose without micro PASS
-[ ] Phase 1 polish chunks: CHECKS or Mode line shows N sentence Tasks (not one batched Task)
+[ ] Micro skill works standalone on ≤12-sentence quotes (draft-first, marks, background verify)
+[ ] Micro gate routes >12 sentences to this macro skill
+[ ] Stage D may start next piece while another job is checking (one job per mark)
+[ ] Stage D does **not** wait for PASS before ending the turn
+[ ] Hook allows verify:running / verify:partial without CHECKS; no FAIL reloop
+[ ] Verifier profile inherited or defaulted — not re-asked per chunk
+[ ] Orchestrator did not author chunk body prose
+[ ] Task plan has phase1_sentence_tasks: 0
+[ ] Full-scope chunks: no fast-polish math skip (caller: section-orchestrator)
 [ ] Section orchestrator did not launch micro verifier Tasks directly
-[ ] Cold resume from session.md only — agent honors job_mode without re-running Q2
-[ ] No verifier Task launched without Stage A AskQuestion confirmation (`user_confirmed: true`)
+[ ] Cold resume honors job_mode and pace; wake protocol runs if a job is checking
+[ ] CONFLICTS leaves user text and asks one decision
+[ ] Definition halt: construction-led named object → ask for operational criterion before drafting that chunk
+[ ] User-facing turns use named states — no progress bars, no “reply continue”
 ```
 
 ## Example dry-run target
 
-For the Ancilla Optimization notes, `\section{$\mathfrak{Q}$-correctable errors}` in `Notes/syndrome-specific correctable errors.tex` is a valid macro candidate (>12 sentences, multiple subsections).
+Any `\section{...}` with **>12** typographic sentences is a valid parent-skill candidate. Count sentences, estimate chunks (roughly 8–10 sentences each), and confirm no chunk would split inside math, `\cite{}`, or `\ref{}`.
 
-**Dry-run result:** prose sentence estimate >20 → macro eligible → ~4–6 chunks. Sample manifest: [examples/dry-run-manifest.example.json](examples/dry-run-manifest.example.json).
-
-Expected flow: Stage A brief → Stage B structural on full section → Stage C ~4–6 chunks → Stage D one per turn → Stage E boundary check.
+**Dry-run result shape:** `Dry-run: <N> sentences → ~<M> chunks feasible`. Sample: [examples/dry-run-manifest.example.json](examples/dry-run-manifest.example.json).
 
 ## Failure recovery
 
 | Symptom | Action |
 |---------|--------|
-| Agent forgot workflow / improvised edits | Read `session.md` first; do not re-run edit gate Q2; follow Next action |
-| User directive ignored (major edit shipped) | Re-read § User special requests; move violation to deferred_edits; revert or ask user |
-| Verifier Tasks without model AskQuestion | Check `session.md` `user_confirmed`; if false, AskQuestion before any Task |
-| Chunk stuck `in_progress` | Reset to `pending`; re-run Stage D for that id |
-| tex_anchor not found | Refresh markers in manifest after structural edits |
-| Micro FAIL loop exhausted | Fix in chunk turn; do not mark pass |
-| Integration FAIL at boundary | Extract ≤12-sentence span → micro skill → re-run Stage E |
+| Agent forgot workflow / improvised edits | Read `session.md` first; follow Next action |
+| User directive ignored | Re-read § User special requests; deferred_edits |
+| Construction marks missing | Last snapshot + tex_anchor; ask before re-wrap |
+| Chunk stuck `checking` | Wake protocol; harvest jsonl; do not drop findings |
+| tex_anchor not found | Prefer PPE sentinels; else refresh markers |
+| Integration FAIL at boundary | ≤12-sentence span → micro coworker loop → re-run Stage E |
