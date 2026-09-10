@@ -2,7 +2,7 @@
 
 **For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. This file is canonical for Stages A–E step detail.
 
-**Read with the Read tool** when running the macro pipeline ([SKILL.md](SKILL.md)). Micro handoff per chunk: [chunk-contract.md](chunk-contract.md) · shared rules: [cross-skill.md](../physics-paper-editing/cross-skill.md). User-facing copy: [user-communication.md](../physics-paper-editing/user-communication.md).
+**Read with the Read tool** when running the macro pipeline ([SKILL.md](SKILL.md)). Micro handoff per chunk: [chunk-contract.md](chunk-contract.md) · shared rules: [cross-skill.md](cross-skill.md). User-facing copy: [user-communication.md](../physics-paper-editing/user-communication.md).
 
 ---
 
@@ -49,6 +49,7 @@ Section-scoped verifiers may run in the background ([scope-and-verifiers.md](sco
      • reorder / split paragraphs
      • add signposts, move labels
      • [INSERT PROSE: …] placeholders for Stage D
+     • flag construction-led definitions (recipe before operational criterion); do **not** invent the criterion — placeholder or user call
    — do NOT write new body prose here
 4. Re-read section; update section-brief.md if framing shifted
 5. Update session.md — pipeline_stage: B
@@ -96,8 +97,10 @@ Use the same feasibility rules as the micro gate ([gate.md](../physics-paper-edi
      — wrap tex_anchor with PPE marks; snapshot; background Tasks
      — skip micro job/pace AskQuestion when supplied
      — caller: section-orchestrator (no fast-polish math skip)
+     — definition halt: do not wrap a construction-only named-object definition
 7. Write jobs/<job_id>/; set chunk job_id + status: checking
 8. End the turn — do not wait for OVERALL: PASS
+   (Definition halt on that chunk: Need your call; leave chunk pending; do not wrap a construction-only draft)
 9. Audit: Mode: section-edit · chunk:<id> · verify:running · …
 ```
 

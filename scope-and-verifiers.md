@@ -2,12 +2,13 @@
 
 **For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read with the Read tool** for Stages B and E.
 
-Section-scoped review reuses the micro skill's checklists **verbatim**:
+Section-scoped review uses **`physics-paper-principles`** **verbatim**:
 
-- [narrative-checks.md](../physics-paper-editing/narrative-checks.md)
-- [math-checks.md](../physics-paper-editing/math-checks.md)
+- [narrative.md](../physics-paper-principles/narrative.md)
+- [math.md](../physics-paper-principles/math.md)
+- named objects: [physical-lead.md](../physics-paper-principles/physical-lead.md)
 
-Do **not** fork or edit those files. The macro skill adds a **`Scope:` header** so verifiers know which unit "the whole" refers to (the checklists already support section scale).
+Severity mapping (BLOCKER vs SUGGEST) is [severity.md](../physics-paper-editing/severity.md). Do **not** fork those files. This skill adds a **`Scope:` header** so verifiers know which unit "the whole" refers to (the narrative file already supports section scale).
 
 ## Scope values
 
@@ -27,7 +28,7 @@ Do **not** add `Scope:` to the micro skill's own prompts — only macro-launched
 
 Use the `deep` slug from `session.md` § Verifier model profile when `user_confirmed: true`. Launch in parallel with `run_in_background: true` when practical. Harvest findings the same way as micro jobs if the user keeps editing.
 
-If `user_confirmed: false`, use disclosed defaults or AskQuestion before launching ([cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile).
+If `user_confirmed: false`, use disclosed defaults or AskQuestion before launching ([cross-skill.md](cross-skill.md) § Verifier model profile).
 
 ## Narrative verifier prompt (Scope: section)
 
@@ -62,7 +63,7 @@ section
 <1–3 sentences from neighboring sections, or omit>
 
 ## Instructions
-Read narrative-checks.md (Read tool). Run every group and bullet.
+Read ../physics-paper-principles/narrative.md (Read tool). Run every group and bullet.
 Scope: section — "the whole" means this entire section block.
 Do not edit the text. Report each group in file order.
 
@@ -105,7 +106,8 @@ section
 <Stage B or E focus as above>
 
 ## Instructions
-Read math-checks.md (Read tool). Run Step 0, then type-specific checks.
+Read ../physics-paper-principles/math.md (Read tool). Run Step 0, then type-specific checks.
+Named objects: also physical-lead.md.
 Scope: section — classify every statement in this section block.
 If no math: state N/A and complete the report.
 
@@ -125,8 +127,9 @@ The **orchestrator** (not verifiers) applies **structure-only** fixes:
 - Reorder / split paragraphs
 - Add or move signposts, `\label{}`, forward/back references
 - Mark `[INSERT PROSE: …]` placeholders for Stage D
+- Flag construction-led definitions (operational criterion missing). Do not write the criterion in Stage B.
 
-**No new prose** in Stage B. Placeholders are filled and verified per chunk in Stage D.
+**No new prose** in Stage B. Placeholders are filled and verified per chunk in Stage D. A chunk that introduces a named physical object still runs the micro definition halt before drafting.
 
 Stage B does **not** require a separate CHECKS block — lean approach: mechanical structural moves + chunk verification covers prose. Record structural changes in the stage report.
 

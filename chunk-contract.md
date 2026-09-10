@@ -4,7 +4,7 @@
 
 Each chunk invocation runs the **standalone** micro coworker loop ([physics-paper-editing](../physics-paper-editing/SKILL.md)) on **one ≤12-sentence unit**. The section orchestrator **does not** inline-edit chunk body prose.
 
-Routing and verifier inheritance: [cross-skill.md](../physics-paper-editing/cross-skill.md) § Verifier model profile.
+Routing and verifier inheritance: [cross-skill.md](cross-skill.md) § Verifier model profile.
 
 ## Macro → micro (inputs)
 
@@ -30,6 +30,7 @@ Routing and verifier inheritance: [cross-skill.md](../physics-paper-editing/cros
 3. Skip micro job/pace AskQuestion when `edit_gate`, `pace`, and models are supplied.
 4. Every chunk Task plan carries `caller: section-orchestrator`. The standalone fast-polish math skip **never** applies to a chunk.
 5. Wrap the `tex_anchor` span with `% PPE-BEGIN` / `% PPE-END` ([job-state.md](../physics-paper-editing/job-state.md)). Snapshot. Launch background checkers. **End the turn** — do not wait for `OVERALL: PASS`.
+   If the chunk introduces a named physical object and micro **definition halt** fires, do not wrap a construction-only draft. Leave the chunk `pending` (or `conflict`); ask the user for the operational criterion before Stage D continues on that object.
 6. On a later wake, harvest + merge ([merge-policy.md](../physics-paper-editing/merge-policy.md)). Write back the merged interior between the marks (or unmark on `PASS`).
 7. Return Mode line + CHECKS (when a round finished) + compliance lines for `session.md`.
 

@@ -1,15 +1,16 @@
 ---
 name: physics-paper-editing-section
 description: >-
-  Edits whole LaTeX sections (>12 sentences) by orchestrating the standalone
-  physics-paper-editing coworker loop per chunk. Stages A–E: intake, structural
-  pass, chunking, non-blocking draft+background-verify, integration. Disk state
-  in .physics-edit/. For ≤12 sentences use physics-paper-editing directly.
+  Edits whole LaTeX sections (>12 sentences) by orchestrating the
+  physics-paper-editing coworker loop per chunk. Parent of that micro skill.
+  Stages A–E: intake, structural pass, chunking, non-blocking
+  draft+background-verify, integration. Disk state in .physics-edit/. Canon is
+  physics-paper-principles. For ≤12 sentences use physics-paper-editing directly.
 ---
 
-# Physics Paper Editing — Section (macro)
+# Physics Paper Editing — Section (parent)
 
-Section-level editor for physics and mathematics LaTeX. **Orchestrates** the standalone micro skill ([physics-paper-editing](../physics-paper-editing/SKILL.md)); does not replace its coworker loop.
+Section-level editor for physics and mathematics LaTeX. **Orchestrates** the micro skill ([physics-paper-editing](../physics-paper-editing/SKILL.md)); does not replace its coworker loop. Canon: **`physics-paper-principles`**.
 
 **Scope:** passages **>12 sentences** or whole `\section{...}` blocks. For **≤12 sentences**, use the micro skill directly.
 
@@ -25,7 +26,7 @@ Section-level editor for physics and mathematics LaTeX. **Orchestrates** the sta
 
 | When | Read (in order) |
 |------|-----------------|
-| **Every resume** | `session.md` → [cross-skill.md](../physics-paper-editing/cross-skill.md) § ON RESUME |
+| **Every resume** | `session.md` → [cross-skill.md](cross-skill.md) § ON RESUME |
 | **Stages A–C, E** | [stages.md](stages.md), [disk-layout.md](disk-layout.md) |
 | **Stage B or E** | + [scope-and-verifiers.md](scope-and-verifiers.md) |
 | **Stage C or D** | + [chunk-contract.md](chunk-contract.md) |
@@ -39,9 +40,9 @@ Section-level editor for physics and mathematics LaTeX. **Orchestrates** the sta
 | ≤12 sentences | **Micro only** — do not start macro |
 | >12 sentences or whole `\section{...}` | **This skill** (Stages A–E) |
 
-Shared routing, terminology, verifier handoff: [cross-skill.md](../physics-paper-editing/cross-skill.md).
+Shared routing, terminology, verifier handoff: [cross-skill.md](cross-skill.md).
 
-**First reply:** confirm scope and target/resume state. Ask polish / rewrite / mixed only if unclear. Inherit pace and models when a confirmed profile exists ([user-communication.md](../physics-paper-editing/user-communication.md)).
+**First reply:** confirm scope and target/resume state. Ask polish / rewrite / mixed only if unclear. Inherit pace and models when a confirmed profile exists ([user-communication.md](../physics-paper-editing/user-communication.md)). Construction-led named objects: flag at Stage B; do not invent the operational criterion — micro definition halt still applies at Stage D.
 
 ## Purpose
 
@@ -58,7 +59,7 @@ The section orchestrator writes **no new body prose** — only structure-level m
 
 ## ON RESUME (mandatory)
 
-Follow [cross-skill.md](../physics-paper-editing/cross-skill.md) § ON RESUME. Detail: [disk-layout.md](disk-layout.md) § session.md · [automation.md](automation.md) § Context compaction recovery.
+Follow [cross-skill.md](cross-skill.md) § ON RESUME. Detail: [disk-layout.md](disk-layout.md) § session.md · [automation.md](automation.md) § Context compaction recovery.
 
 On resume: if any job is `checking`, run the micro wake protocol (related hashes → interrupt → harvest → merge) **before** starting a new piece.
 
@@ -72,7 +73,7 @@ On resume: if any job is `checking`, run the micro wake protocol (related hashes
 | **Section orchestrator** | Macro main agent — structure only |
 | **Chunk agent** | Micro producer for one chunk — sole author of that chunk’s prose |
 
-Full map: [cross-skill.md](../physics-paper-editing/cross-skill.md) § Terminology map.
+Full map: [cross-skill.md](cross-skill.md) § Terminology map.
 
 ## Agent tiers at section scale
 
@@ -82,7 +83,7 @@ Full map: [cross-skill.md](../physics-paper-editing/cross-skill.md) § Terminolo
 | **Chunk agent** | micro skill producer | Yes | Yes (micro verifiers) | No |
 | **Micro verifier / synthesizer** | per micro rules | No | No | synthesizer only |
 
-**Invariants:** [cross-skill.md](../physics-paper-editing/cross-skill.md) § Writer ≠ grader · Orchestrator ≠ self-auditor. One **job** per marked region. Do not nest verifier fan-out inside another verifier.
+**Invariants:** [cross-skill.md](cross-skill.md) § Writer ≠ grader · Orchestrator ≠ self-auditor. One **job** per marked region. Do not nest verifier fan-out inside another verifier.
 
 ## Pipeline — Stages A–E
 
@@ -149,16 +150,6 @@ integration: PASS
 
 Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` and `jobs/<id>/` — reference paths, do not paste all blocks.
 
-## Project-specific context (optional)
-
-When the manuscript is the Ancilla Optimization / QEC error-budgeting paper:
-
-- **Topic:** decomposing logical infidelity into error-mechanism contributions for realistic QEC devices.
-- **Typical targets:** `Sections/*.tex`, `Notes/*.tex` standalone notes.
-- **Micro skill:** [physics-paper-editing](../physics-paper-editing/SKILL.md) for each chunk.
-
-For other papers, use only the generic workflow above.
-
 ## File map
 
 **Macro pipeline**
@@ -172,23 +163,26 @@ For other papers, use only the generic workflow above.
 | [automation.md](automation.md) | Resume, compaction recovery, optional watcher |
 | [test-checklist.md](test-checklist.md) | End-to-end acceptance |
 
-**Shared with micro**
+**Shared**
 
 | File | Role |
 |------|------|
-| [cross-skill.md](../physics-paper-editing/cross-skill.md) | Routing, terminology, verifier handoff, ON RESUME |
+| [cross-skill.md](cross-skill.md) | Routing, terminology, verifier handoff, ON RESUME (lives here — parent) |
 | [coworker-loop.md](../physics-paper-editing/coworker-loop.md) | Draft-first loop |
 | [user-communication.md](../physics-paper-editing/user-communication.md) | Workbench UX |
+| [../physics-paper-principles/SKILL.md](../physics-paper-principles/SKILL.md) | Prose canon |
 
 ## Related skills
 
 | Skill | When |
 |-------|------|
+| **physics-paper-principles** | Canon for sentence / narrative / math / physical lead |
 | **physics-paper-editing** | Micro skill — invoked per chunk in Stage D |
 
 ## Out of scope
 
 - Passages **≤12 sentences** — micro skill only; do not start macro Stages A–E
+- Restating prose principles — those live in **`physics-paper-principles`**
 - Section orchestrator writing chunk body prose (structure-only moves in Stages B/C/E)
 - Skipping Stage B because chunks will be checked later
 - Nested sub-subagents beyond the micro skill's verifier Tasks

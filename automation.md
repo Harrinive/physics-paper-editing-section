@@ -1,6 +1,6 @@
 # Automation & resume
 
-**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read when** resuming a section edit or arming an optional file watcher. Resume boot: [cross-skill.md](../physics-paper-editing/cross-skill.md) § ON RESUME.
+**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read when** resuming a section edit or arming an optional file watcher. Resume boot: [cross-skill.md](cross-skill.md) § ON RESUME.
 
 ## After a Stage D launch
 

@@ -44,14 +44,15 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 [ ] Section orchestrator did not launch micro verifier Tasks directly
 [ ] Cold resume honors job_mode and pace; wake protocol runs if a job is checking
 [ ] CONFLICTS leaves user text and asks one decision
+[ ] Definition halt: construction-led named object → ask for operational criterion before drafting that chunk
 [ ] User-facing turns use named states — no progress bars, no “reply continue”
 ```
 
 ## Example dry-run target
 
-For the Ancilla Optimization notes, `\section{$\mathfrak{Q}$-correctable errors}` in `Notes/syndrome-specific correctable errors.tex` is a valid macro candidate (>12 sentences).
+Any `\section{...}` with **>12** typographic sentences is a valid parent-skill candidate. Count sentences, estimate chunks (roughly 8–10 sentences each), and confirm no chunk would split inside math, `\cite{}`, or `\ref{}`.
 
-**Dry-run result:** prose sentence estimate >20 → macro eligible → ~4–6 chunks. Sample: [examples/dry-run-manifest.example.json](examples/dry-run-manifest.example.json).
+**Dry-run result shape:** `Dry-run: <N> sentences → ~<M> chunks feasible`. Sample: [examples/dry-run-manifest.example.json](examples/dry-run-manifest.example.json).
 
 ## Failure recovery
 
