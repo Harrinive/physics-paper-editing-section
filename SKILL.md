@@ -42,7 +42,7 @@ Section-level editor for physics and mathematics LaTeX. **Orchestrates** the mic
 
 Shared routing, terminology, verifier handoff: [cross-skill.md](cross-skill.md).
 
-**First reply:** confirm scope and target/resume state. Ask polish / rewrite / mixed only if unclear. Inherit pace and models when a confirmed profile exists ([user-communication.md](../physics-paper-editing/user-communication.md)). Construction-led named objects: flag at Stage B; do not invent the operational criterion — micro definition halt still applies at Stage D.
+**First reply:** confirm scope and target/resume state. Ask polish / rewrite / mixed only if unclear. Inherit pace and models when a confirmed profile exists ([user-communication.md](../physics-paper-editing/user-communication.md)). Named physical objects: consider meaning and definition choice at Stage B; all suitable definition forms are allowed. Micro definition halt at Stage D applies only to unresolved essential scientific ambiguity.
 
 ## Purpose
 

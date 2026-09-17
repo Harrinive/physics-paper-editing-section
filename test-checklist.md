@@ -44,7 +44,7 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 [ ] Section orchestrator did not launch micro verifier Tasks directly
 [ ] Cold resume honors job_mode and pace; wake protocol runs if a job is checking
 [ ] CONFLICTS leaves user text and asks one decision
-[ ] Definition halt: construction-led named object → ask for operational criterion before drafting that chunk
+[ ] Definition choice: a supported operational definition is preferred when useful; a valid construction proceeds; only unresolved essential scientific ambiguity triggers definition halt
 [ ] User-facing turns use named states — no progress bars, no “reply continue”
 ```
 

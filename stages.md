@@ -49,7 +49,7 @@ Section-scoped verifiers may run in the background ([scope-and-verifiers.md](sco
      • reorder / split paragraphs
      • add signposts, move labels
      • [INSERT PROSE: …] placeholders for Stage D
-     • flag construction-led definitions (recipe before operational criterion); do **not** invent the criterion — placeholder or user call
+     • flag missing physical motivation or unresolved meaning; distinguish presentation suggestions from essential scientific choices — do not invent interpretation
    — do NOT write new body prose here
 4. Re-read section; update section-brief.md if framing shifted
 5. Update session.md — pipeline_stage: B
@@ -97,10 +97,10 @@ Use the same feasibility rules as the micro gate ([gate.md](../physics-paper-edi
      — wrap tex_anchor with PPE marks; snapshot; background Tasks
      — skip micro job/pace AskQuestion when supplied
      — caller: section-orchestrator (no fast-polish math skip)
-     — definition halt: do not wrap a construction-only named-object definition
+     — definition halt only for unresolved essential scientific ambiguity; construction-based definitions are allowed
 7. Write jobs/<job_id>/; set chunk job_id + status: checking
 8. End the turn — do not wait for OVERALL: PASS
-   (Definition halt on that chunk: Need your call; leave chunk pending; do not wrap a construction-only draft)
+   (Definition halt on that chunk: Need your call on the specific scientific choice; leave chunk pending; other chunks may proceed)
 9. Audit: Mode: section-edit · chunk:<id> · verify:running · …
 ```
 

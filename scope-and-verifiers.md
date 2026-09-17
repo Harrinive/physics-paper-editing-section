@@ -127,7 +127,7 @@ The **orchestrator** (not verifiers) applies **structure-only** fixes:
 - Reorder / split paragraphs
 - Add or move signposts, `\label{}`, forward/back references
 - Mark `[INSERT PROSE: …]` placeholders for Stage D
-- Flag construction-led definitions (operational criterion missing). Do not write the criterion in Stage B.
+- Assess physical meaning and definition choice. Flag weak motivation as a presentation suggestion; identify essential scientific ambiguity separately. Constructions are allowed. Do not author new physical interpretation in Stage B.
 
 **No new prose** in Stage B. Placeholders are filled and verified per chunk in Stage D. A chunk that introduces a named physical object still runs the micro definition halt before drafting.
 
