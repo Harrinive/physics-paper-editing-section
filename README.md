@@ -13,9 +13,9 @@ This skill applies **global edits and suggestions** at section scale, then **orc
 Requires [physics-paper-principles](https://github.com/Harrinive/physics-paper-principles) and [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing) as **sibling folders**. Install all three together (see the [Cursor Skills docs](https://cursor.com/docs/context/skills)):
 
 ```bash
-git clone https://github.com/Harrinive/physics-paper-principles.git ~/.cursor/skills/physics-paper-principles
-git clone https://github.com/Harrinive/physics-paper-editing.git ~/.cursor/skills/physics-paper-editing
-git clone https://github.com/Harrinive/physics-paper-editing-section.git ~/.cursor/skills/physics-paper-editing-section
+git clone https://github.com/Harrinive/physics-paper-principles.git ~/.agents/skills/physics-paper-principles
+git clone https://github.com/Harrinive/physics-paper-editing.git ~/.agents/skills/physics-paper-editing
+git clone https://github.com/Harrinive/physics-paper-editing-section.git ~/.agents/skills/physics-paper-editing-section
 ```
 
 ## Entry point
@@ -34,7 +34,7 @@ Use your platform's skill-creation workflow first, then port the workflow logic 
 
 | Platform | Install path (typical) | Use this to adapt |
 |----------|------------------------|-------------------|
-| **Cursor** | `~/.cursor/skills/<name>/` | [Cursor Skills docs](https://cursor.com/docs/context/skills) — or run `/create-skill` in Agent chat |
+| **Cursor** | `~/.cursor/skills/<name>/` or `~/.agents/skills/<name>/` | [Cursor Skills docs](https://cursor.com/docs/context/skills) — or run `/create-skill` in Agent chat |
 | **Claude Code** | `~/.claude/skills/<name>/` or `.claude/skills/<name>/` | [Claude Code skills docs](https://code.claude.com/docs/en/skills) |
 | **OpenAI Codex** | `~/.agents/skills/<name>/` or `.agents/skills/<name>/` (`~/.codex/skills/` legacy) | [Codex Agent Skills](https://developers.openai.com/codex/skills) — run **`$skill-creator`** in Codex to scaffold the port |
 | **GitHub Copilot** | `~/.copilot/skills/<name>/` or `~/.agents/skills/<name>/`; project: `.github/skills/<name>/` or `.agents/skills/<name>/` | [Copilot: add skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) |
