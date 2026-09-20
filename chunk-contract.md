@@ -20,16 +20,16 @@ Routing and verifier inheritance: [cross-skill.md](cross-skill.md) § Verifier m
 | `verifier_model_profile` | yes | From session.md when `user_confirmed: true`; else defaults |
 | `tex_anchor` | yes | Where to wrap / write back |
 | `[bracket comments]` | if any | Inline editing instructions |
-| `task_plan_seed` | yes | `chunk_id`, `edit_gate`, `pace`, `N` — micro completes the Task plan |
+| `worker_plan_seed` | yes | `chunk_id`, `edit_gate`, `pace`, `N` — micro completes the worker plan |
 | `job_id` | yes | Unique; disk at `jobs/<job_id>/` |
 
 ### Invoking the micro skill
 
 1. Read micro [SKILL.md](../physics-paper-editing/SKILL.md) and run the coworker loop on **`chunk_text` only**.
 2. Treat `user_special_requests` as editing instructions (same priority as `[bracket comments]`).
-3. Skip micro job/pace AskQuestion when `edit_gate`, `pace`, and models are supplied.
-4. Every chunk Task plan carries `caller: section-orchestrator`. The standalone fast-polish math skip **never** applies to a chunk.
-5. Wrap the `tex_anchor` span with `% PPE-BEGIN` / `% PPE-END` ([job-state.md](../physics-paper-editing/job-state.md)). Snapshot. Launch background checkers. **End the turn** — do not wait for `OVERALL: PASS`.
+3. Skip micro job/pace questions when `edit_gate`, `pace`, and a user-confirmed model profile are supplied.
+4. Every chunk worker plan carries `caller: section-orchestrator`. The standalone fast-polish math skip **never** applies to a chunk.
+5. Wrap the `tex_anchor` span with `% PPE-BEGIN` / `% PPE-END` ([job-state.md](../physics-paper-editing/job-state.md)). Snapshot. Schedule verification under the runtime contract; return control when it is asynchronous — do not wait for `OVERALL: PASS`.
    If micro **definition halt** fires for unresolved essential scientific ambiguity, leave the affected chunk `pending` (or `conflict`) and ask the specific scientific question. A valid construction or absence of an operational criterion alone does not halt Stage D; independent chunks may proceed.
 6. On a later wake, harvest + merge ([merge-policy.md](../physics-paper-editing/merge-policy.md)). Write back the merged interior between the marks (or unmark on `PASS`).
 7. Return Mode line + CHECKS (when a round finished) + compliance lines for `session.md`.
@@ -57,7 +57,7 @@ On `OVERALL: CONFLICTS`, leave the user’s text, set `conflict`, ask one decisi
 **Forbidden:**
 
 - Authoring chunk body prose without the micro loop.
-- Launching micro verifier Tasks from the section orchestrator.
+- Launching micro verifier jobs from the section orchestrator.
 - Waiting for `PASS` before the user may start another piece.
 - Marking `pass` when CHECKS lacks `compliance_orchestrator_plan: PASS` and `compliance_worker_reports: PASS` (unless the round is `PARTIAL`/`CONFLICTS` — those are not pass).
 - Nesting marks.
@@ -66,7 +66,7 @@ On `OVERALL: CONFLICTS`, leave the user’s text, set `conflict`, ask one decisi
 
 When `verifier_model_profile` is supplied from **confirmed** `session.md`:
 
-- Sentence Tasks → `sentence` (fast tier)
+- Sentence verifier jobs → `sentence` (fast tier)
 - Narrative + math → `deep`
 - Synthesizer → `synth`
 

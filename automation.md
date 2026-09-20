@@ -4,7 +4,7 @@
 
 ## After a Stage D launch
 
-End the turn once the piece is marked and its background job is running. Do **not** wait for `PASS`. Do **not** ask the user to reply **continue**.
+Return control once the piece is marked and verification is scheduled asynchronously. Do **not** wait for `PASS`. Do **not** ask the user to reply **continue**.
 
 The next turn reads:
 
@@ -18,7 +18,7 @@ The next turn reads:
 |-----------|--------|
 | anything, while a job is `checking` | Wake protocol first (related hashes → interrupt → harvest → merge) |
 | **next piece** | Draft the next `pending` chunk (second mark OK) |
-| **stop** | Interrupt running Tasks; harvest; do not start a new piece |
+| **stop** | Request stop for running verifiers; harvest; do not start a new piece |
 | (no command — just an edit) | Same as wake |
 
 ## Context compaction recovery
@@ -29,7 +29,7 @@ If the chat was summarized or the user asks about an in-progress section edit:
 2. Follow **Next action** and **Hard rules**.
 3. Do not re-run job or pace intake.
 4. Honor **User special requests**.
-5. Do **not** launch verifier Tasks without a resolved profile (`user_confirmed: true` or disclosed defaults).
+5. Do **not** launch verifier jobs without a confirmed, inherited, or recorded no-interaction-fallback profile.
 6. Do **not** improvise the old wait-until-PASS loop.
 
 ## Optional file watcher

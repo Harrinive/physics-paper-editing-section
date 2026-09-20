@@ -19,17 +19,17 @@
      • mixed — mostly polish; list rewrite chunks (placeholders, \todo, [INSERT PROSE])
    Pace: fast | full — background-check scope only (inherit or default fast)
 4. Ask polish/rewrite/mixed only if unclear. Inherit pace + models when
-   session.md already has user_confirmed: true, or use micro defaults and
+   session.md already has a recorded profile, or record the runtime fallback and
    mention once ([user-communication.md](../physics-paper-editing/user-communication.md)).
-   If you must AskQuestion, END TURN until it returns — do not launch Stage B checkers yet.
+   If a user decision is required, wait for it before Stage B verification. Use the active runtime's interaction capability; do not assume a particular turn lifecycle.
 5. Write section-brief.md and session.md
-6. Mirror job_mode, pace, and slugs to manifest.json; set user_confirmed: true
-   when the profile is inherited, defaulted-and-disclosed, or AskQuestion-confirmed
+6. Mirror job_mode, pace, and the profile schema to manifest.json; retain the actual user_confirmed value
+   only when the user accepted or selected it, or when it is explicitly inherited from a user-confirmed profile
 7. Update session.md next action (Stage B)
 8. Audit: Mode: section-edit · stage:A · <slug>
 ```
 
-**Forbidden at Stage A:** launching section-scoped verifier Tasks before models are resolved; copying slugs from a prior chat without saying so.
+**Forbidden at Stage A:** launching section-scoped verifier jobs before the profile is recorded; copying model identifiers from a prior chat without saying so.
 
 **Mid-run user directives:** append to session.md § User special requests with dated bullet; do not overwrite **standing** without user intent to replace.
 
@@ -39,10 +39,10 @@
 
 **Goal:** Fix big narrative/logical structure **without authoring new body prose**.
 
-Section-scoped verifiers may run in the background ([scope-and-verifiers.md](scope-and-verifiers.md), [coworker-loop.md](../physics-paper-editing/coworker-loop.md) harvest rules). Structure-only writes do not wait for those Tasks if the moves are already clear; still persist findings in `findings-ledger.md`.
+Section-scoped verifiers may run asynchronously ([scope-and-verifiers.md](scope-and-verifiers.md), [coworker-loop.md](../physics-paper-editing/coworker-loop.md) harvest rules). Structure-only writes do not wait for those verifier jobs if the moves are already clear; still persist findings in `findings-ledger.md`.
 
 ```
-1. Launch section-scoped narrative + math verifier Tasks (background OK)
+1. Schedule section-scoped narrative + math verifier jobs (asynchronous when supported)
    — Scope: section, deep-tier model from session.md
 2. Collect FAIL items → structural findings list
 3. Apply structure-only fixes in .tex:
@@ -94,12 +94,12 @@ Use the same feasibility rules as the micro gate ([gate.md](../physics-paper-edi
 6. Invoke micro coworker loop per chunk-contract.md:
      — edit_gate from session or manifest override
      — pace from session.md
-     — wrap tex_anchor with PPE marks; snapshot; background Tasks
-     — skip micro job/pace AskQuestion when supplied
+     — wrap tex_anchor with PPE marks; snapshot; runtime-aware verifier jobs
+     — skip micro job/pace questions when supplied with a confirmed profile
      — caller: section-orchestrator (no fast-polish math skip)
      — definition halt only for unresolved essential scientific ambiguity; construction-based definitions are allowed
 7. Write jobs/<job_id>/; set chunk job_id + status: checking
-8. End the turn — do not wait for OVERALL: PASS
+8. Return control when the runtime permits — do not wait for OVERALL: PASS
    (Definition halt on that chunk: Need your call on the specific scientific choice; leave chunk pending; other chunks may proceed)
 9. Audit: Mode: section-edit · chunk:<id> · verify:running · …
 ```
@@ -139,7 +139,7 @@ If no pending chunks remain **and** every chunk is `pass` (unmarked, no open con
 
 | Stage | Writes .tex? | Subagents? | Ends turn? |
 |-------|--------------|------------|------------|
-| A | brief + session | AskQuestion only if needed | if waiting on AskQuestion |
+| A | brief + session | collect a user decision only if needed | while awaiting the decision |
 | B | structure only | section verifiers (background OK) | after receipt |
 | C | manifest only | no | after receipt |
 | D | via micro draft+mark | micro background verifiers | **yes — after launch**, not after PASS |

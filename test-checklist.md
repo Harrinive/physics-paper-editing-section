@@ -23,7 +23,7 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 [ ] PPE marks removed from passed chunks
 [ ] chunks/*.checks — one file per passed chunk with OVERALL: PASS
 [ ] chunks/*.checks — compliance_* PASS; one sentence_S*k*: line per label (no ranges)
-[ ] jobs/<id>/findings.jsonl exists for each job that ran
+[ ] jobs/<id>/findings/ contains one result shard per verifier that ran
 [ ] Source .tex — anchors resolve; no [INSERT PROSE] placeholders remain
 [ ] Stage E integration — no unresolved FAIL
 [ ] Audit drawer includes <!-- SECTION DONE ... --> with integration: PASS
@@ -32,16 +32,16 @@ Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
 ## Regression checks
 
 ```
-[ ] Micro skill works standalone on ≤12-sentence quotes (draft-first, marks, background verify)
+[ ] Micro skill works standalone on ≤12-sentence quotes (draft-first, marks, runtime-aware verification)
 [ ] Micro gate routes >12 sentences to this macro skill
 [ ] Stage D may start next piece while another job is checking (one job per mark)
-[ ] Stage D does **not** wait for PASS before ending the turn
-[ ] Hook allows verify:running / verify:partial without CHECKS; no FAIL reloop
-[ ] Verifier profile inherited or defaulted — not re-asked per chunk
+[ ] Stage D does **not** withhold the draft before PASS
+[ ] Host-native lifecycle permits verify:running / verify:partial without CHECKS; no FAIL reloop
+[ ] Verifier profile is user-confirmed once and inherited — not re-asked per chunk
 [ ] Orchestrator did not author chunk body prose
-[ ] Task plan has phase1_sentence_tasks: 0
+[ ] Worker plan has phase1_sentence_tasks: 0
 [ ] Full-scope chunks: no fast-polish math skip (caller: section-orchestrator)
-[ ] Section orchestrator did not launch micro verifier Tasks directly
+[ ] Section orchestrator did not launch micro verifiers directly
 [ ] Cold resume honors job_mode and pace; wake protocol runs if a job is checking
 [ ] CONFLICTS leaves user text and asks one decision
 [ ] Definition choice: a supported operational definition is preferred when useful; a valid construction proceeds; only unresolved essential scientific ambiguity triggers definition halt
@@ -61,6 +61,6 @@ Any `\section{...}` with **>12** typographic sentences is a valid parent-skill c
 | Agent forgot workflow / improvised edits | Read `session.md` first; follow Next action |
 | User directive ignored | Re-read § User special requests; deferred_edits |
 | Construction marks missing | Last snapshot + tex_anchor; ask before re-wrap |
-| Chunk stuck `checking` | Wake protocol; harvest jsonl; do not drop findings |
+| Chunk stuck `checking` | Completion protocol; harvest result shards; do not drop findings |
 | tex_anchor not found | Prefer PPE sentinels; else refresh markers |
 | Integration FAIL at boundary | ≤12-sentence span → micro coworker loop → re-run Stage E |

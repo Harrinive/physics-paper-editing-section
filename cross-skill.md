@@ -82,20 +82,20 @@ How many sentences in the target passage?
 
 ### Parent (section edit)
 
-1. **Stage A** — freeze `job_mode`; persist pace and slugs (inherit, disclosed defaults, or AskQuestion) in `session.md`, `section-brief.md`, `manifest.json`.
-2. Set **`user_confirmed: true`** after inherit / disclosed defaults / AskQuestion — never from brief/manifest alone without that.
-3. **Stages B, D, E** — inherit slugs when `user_confirmed: true`.
-4. **Per chunk (Stage D)** — no re-ask when confirmed:
+1. **Stage A** — freeze `job_mode`; obtain the one model-profile choice defined by [runtime-contract.md](../physics-paper-editing/runtime-contract.md), then persist role tiers, resolved identifiers, reasoning levels, and source in `session.md`, `section-brief.md`, and `manifest.json`.
+2. Set **`user_confirmed: true`** only after the user accepts the role-based profile, selects inheritance, or supplies custom mappings. Displaying defaults alone leaves it `false`.
+3. **Stages B, D, E** — reuse the recorded profile; a `fallback` profile may have `user_confirmed: false`.
+4. **Per chunk (Stage D)** — no re-ask when the profile is recorded:
 
 | Session row | Used for |
 |-------------|----------|
-| sentence | Background changed-sentence Tasks |
+| sentence | Changed-sentence verifier jobs |
 | deep | Narrative + math (Stages B/E and micro) |
 | synth | Synthesizer only — never fast tier |
 
-**Invalid skips:** `manifest.json` / `section-brief.md` slugs without `session.md` `user_confirmed: true`.
+**Invalid skips:** `manifest.json` / `section-brief.md` model entries without a matching recorded profile in `session.md`.
 
-**Hard stop:** no editing Task until slugs are resolved (inherit or defaults). Do not block every job on AskQuestion.
+**Hard stop:** do not delegate verification until the profile is confirmed, explicitly inherited from a confirmed parent session, or recorded through the runtime's no-interaction fallback. Do not re-ask for every chunk.
 
 ---
 
@@ -112,8 +112,8 @@ How many sentences in the target passage?
 | User-facing UX | [user-communication.md](../physics-paper-editing/user-communication.md) | Full file |
 | Job × pace | [gate.md](../physics-paper-editing/gate.md) | Decision tree · Sentence-count thresholds |
 | Background verify | [phase2-verify-subagents.md](../physics-paper-editing/phase2-verify-subagents.md) | Full file |
-| Task plan · COMPLIANCE | [compliance-monitoring.md](../physics-paper-editing/compliance-monitoring.md) | Full file |
-| Sentence Task count · batching | [sentence-check-subagents.md](../physics-paper-editing/sentence-check-subagents.md) | §3 |
+| Worker plan · COMPLIANCE | [compliance-monitoring.md](../physics-paper-editing/compliance-monitoring.md) | Full file |
+| Sentence assignment count · batching | [sentence-check-subagents.md](../physics-paper-editing/sentence-check-subagents.md) | §3 |
 | Macro stages A–E | [stages.md](stages.md) | Full file |
 | Chunk I/O | [chunk-contract.md](chunk-contract.md) | Full file |
 | Routing micro ↔ parent | **This file** | § Routing |
@@ -127,7 +127,7 @@ How many sentences in the target passage?
 | Invariant | Rule |
 |-----------|------|
 | **Writer ≠ grader** | Producer / chunk agent never sets `OVERALL`; synthesizer only. `OVERALL` is a **job-round** status, not a ship gate. |
-| **Orchestrator ≠ self-auditor** | Section orchestrator does not launch micro verifier Tasks or certify task counts |
+| **Orchestrator ≠ self-auditor** | Section orchestrator does not launch micro verifier jobs or certify assignment counts |
 | **Pace** | Changes background-check scope only; never makes the user wait; never skips the synthesizer. Chunks always pass `caller: section-orchestrator`, so the standalone-micro fast-polish math skip never applies to a chunk. |
 
 ---
@@ -141,7 +141,7 @@ When resuming a section edit (new chat, **next piece**, context compaction):
 3. If any job is `checking` → micro wake protocol (related hashes → interrupt → harvest → merge) **before** a new piece.
 4. Honor `job_mode`, `pace`, and per-chunk `edit_gate`; do not re-ask.
 5. Honor **User special requests**.
-6. Profile must be resolved (`user_confirmed: true` or disclosed defaults) before verifier Tasks.
+6. Profile must be recorded as confirmed, inherited, or no-interaction fallback before verifier jobs.
 7. Execute **Next action**; rewrite `session.md` before ending the turn.
 
 Detail: [disk-layout.md](disk-layout.md) § session.md · [automation.md](automation.md).

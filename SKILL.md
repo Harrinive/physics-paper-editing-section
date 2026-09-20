@@ -6,13 +6,17 @@ description: >-
   Stages A–E: intake, structural pass, chunking, non-blocking
   draft+background-verify, integration. Disk state in .physics-edit/. Canon is
   physics-paper-principles. For ≤12 sentences use physics-paper-editing directly.
+compatibility: >-
+  Requires filesystem access for drafting. Full verification requires subagent
+  delegation; adapters are provided for Cursor, Codex, and Claude Code through the sibling
+  physics-paper-editing runtime adapters.
 ---
 
 # Physics Paper Editing — Section (parent)
 
 Section-level editor for physics and mathematics LaTeX. **Orchestrates** the micro skill ([physics-paper-editing](../physics-paper-editing/SKILL.md)); does not replace its coworker loop. Canon: **`physics-paper-principles`**.
 
-**Scope:** passages **>12 sentences** or whole `\section{...}` blocks. For **≤12 sentences**, use the micro skill directly.
+**Scope:** passages **>12 sentences** or whole `\section{...}` blocks. For **≤12 sentences**, use the micro skill directly. The sibling [runtime contract](../physics-paper-editing/runtime-contract.md) is the sole authority for model profiles, delegation, and capability fallbacks.
 
 ## When to use
 
@@ -112,7 +116,7 @@ flowchart TD
 [ ] A. Intake — read section + neighbors; persist job_mode, pace, models
 [ ] B. Macro structural — section-scoped verifiers (may be background); structure-only .tex; update session.md
 [ ] C. Chunk — split ≤12 sentences; manifest.json; update session.md
-[ ] D. Draft a pending chunk via micro coworker loop; mark it; start its job; end turn
+[ ] D. Draft a pending chunk via micro coworker loop; mark it; schedule its verification
 [ ]    User may edit that piece or say next piece (second mark / second job)
 [ ] E. When all chunks pass (unmarked, no open conflicts) — boundary check; route fixes through micro
 [ ] Done — section receipt + integration PASS
@@ -120,10 +124,10 @@ flowchart TD
 
 **Hard rules:**
 
-- **No nested sub-subagents** — only the micro skill launches verifier Tasks.
+- **No nested sub-subagents** — only the micro skill launches verifier jobs.
 - **Disk is memory** — persist `session.md` + `section-brief.md` + `manifest.json` + `jobs/<id>/`.
 - Honor `job_mode` and `pace` — frozen at Stage A; do not re-ask on resume.
-- **Verifier models** — inherit when `user_confirmed: true`; else defaults + mention once.
+- **Verifier models** — reuse a confirmed or inherited profile; record the no-interaction fallback when no user-choice facility exists.
 - **Boundary fixes** in Stage E go through the micro coworker loop (≤12 sentences each).
 - Do not skip Stage B because chunks will be checked later.
 - Stages B/E section verifiers do not emit CHECKS in the narrative — record findings in `findings-ledger.md` ([scope-and-verifiers.md](scope-and-verifiers.md)).
@@ -159,7 +163,7 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` and `jobs/<id>/`
 | [stages.md](stages.md) | Stages A–E step-by-step |
 | [disk-layout.md](disk-layout.md) | `.physics-edit/` layout, manifest, jobs, session.md |
 | [chunk-contract.md](chunk-contract.md) | Stage D macro ↔ micro I/O |
-| [scope-and-verifiers.md](scope-and-verifiers.md) | Section-scoped verifier Tasks (B, E) |
+| [scope-and-verifiers.md](scope-and-verifiers.md) | Section-scoped verifier jobs (B, E) |
 | [automation.md](automation.md) | Resume, compaction recovery, optional watcher |
 | [test-checklist.md](test-checklist.md) | End-to-end acceptance |
 
@@ -185,5 +189,5 @@ Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` and `jobs/<id>/`
 - Restating prose principles — those live in **`physics-paper-principles`**
 - Section orchestrator writing chunk body prose (structure-only moves in Stages B/C/E)
 - Skipping Stage B because chunks will be checked later
-- Nested sub-subagents beyond the micro skill's verifier Tasks
+- Nested sub-subagents beyond the micro skill's verifier jobs
 - Waiting for chunk `PASS` before the user may start the next piece

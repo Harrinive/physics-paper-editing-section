@@ -31,17 +31,18 @@ Standing editing constraints from the user — **read every turn**; pass to ever
 
 ## Verifier model profile
 
-| Role | Slug | Used for |
+| Role | Requested tier / resolved model | Used for |
 |------|------|----------|
-| sentence | `<slug>` | Background changed-sentence Tasks |
-| deep | `<slug>` | Narrative + math; Stages B/E |
-| synth | `<slug>` | Job-round synthesizer (`OVERALL`; never fast tier) |
+| sentence | `fast` / `<id or unknown>` | Changed-sentence verifiers |
+| deep | `capable` / `<id or unknown>` | Narrative + math; Stages B/E |
+| synth | `capable` / `<id or unknown>` | Job-round synthesizer (`OVERALL`; never fast tier) |
 
-- **user_confirmed:** `true` | `false` — `true` after inherit, disclosed defaults, or AskQuestion
+- **profile_source:** `accepted_default` | `custom` | `inherit` | `fallback`
+- **user_confirmed:** `true` | `false` — `true` only after the user accepts or selects a profile; disclosure alone is false
 - **confirmed_at:** Stage A · `<YYYY-MM-DD>` (or `—`)
 - **manifest mirror:** `manifest.json` → `verifier_profile` must match when confirmed
 
-On resume: if `user_confirmed: false`, use disclosed defaults or AskQuestion before Tasks. Never silently invent slugs from brief/manifest alone.
+On resume: if `user_confirmed: false`, collect the session-level profile choice when the runtime supports interaction; otherwise retain the recorded no-interaction fallback. Never silently invent model identifiers from brief/manifest alone.
 
 ## Last turn compliance
 
@@ -93,4 +94,4 @@ Copied from synthesizer CHECKS — orchestrator does **not** invent these values
 
 ## Next action
 
-<single imperative — e.g. Wake job j-c03 if checking; else draft pending c04 with marks and background verify; end turn.>
+<single imperative — e.g. harvest job j-c03 if checking; else draft pending c04 with marks and schedule verification.>

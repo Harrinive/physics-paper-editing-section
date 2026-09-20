@@ -17,30 +17,28 @@ Severity mapping (BLOCKER vs SUGGEST) is [severity.md](../physics-paper-editing/
 | `section` | Stages B, E | Full target `\section{...}` block (+ brief) |
 | `chunk` | Stage D | Handled inside micro skill (default there) |
 
-Do **not** add `Scope:` to the micro skill's own prompts — only macro-launched Tasks use `Scope: section`.
+Do **not** add `Scope:` to the micro skill's own prompts — only macro-launched section verifiers use `Scope: section`.
 
 ## When to launch
 
-| Stage | Tasks | readonly |
+| Stage | Verifier assignments | write policy |
 |-------|-------|----------|
 | B — macro structural | 1 narrative + 0–1 math (if math present) | yes |
 | E — integration | 1 narrative + 0–1 math, boundary-focused | yes |
 
-Use the `deep` slug from `session.md` § Verifier model profile when `user_confirmed: true`. Launch in parallel with `run_in_background: true` when practical. Harvest findings the same way as micro jobs if the user keeps editing.
+Use the confirmed `deep` role from `session.md` § Verifier model profile. Schedule runtime-aware waves and harvest result shards the same way as micro jobs if the user keeps editing.
 
-If `user_confirmed: false`, use disclosed defaults or AskQuestion before launching ([cross-skill.md](cross-skill.md) § Verifier model profile).
+If `user_confirmed: false`, collect the session-level model-profile choice before delegation ([cross-skill.md](cross-skill.md) § Verifier model profile).
 
 ## Narrative verifier prompt (Scope: section)
 
 ```text
-Task(
-  subagent_type: "generalPurpose",
-  readonly: true,
-  run_in_background: true,
-  model: <deep slug from session.md § Verifier model profile>,
-  description: "Section narrative verify: Stage <B|E>",
-  prompt: <template below>
-)
+role: narrative
+scope: section
+model_role: deep
+write_policy: no-source-edits
+completion: asynchronous-when-supported
+prompt: template below
 ```
 
 ```text
@@ -80,14 +78,12 @@ Do not edit the text. Report each group in file order.
 ## Math verifier prompt (Scope: section)
 
 ```text
-Task(
-  subagent_type: "generalPurpose",
-  readonly: true,
-  run_in_background: true,
-  model: <deep slug from session.md § Verifier model profile>,
-  description: "Section math verify: Stage <B|E>",
-  prompt: <template below>
-)
+role: math
+scope: section
+model_role: deep
+write_policy: no-source-edits
+completion: asynchronous-when-supported
+prompt: template below
 ```
 
 ```text
@@ -97,7 +93,7 @@ You are a math/logic verifier for a physics paper. You did NOT write this text.
 section
 
 ## Passage summary
-<identical to narrative Task>
+<identical to the narrative verifier summary>
 
 ## Text under review
 <full section LaTeX>

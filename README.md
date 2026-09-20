@@ -1,16 +1,14 @@
 # physics-paper-editing-section
 
-Cursor skill for editing a whole LaTeX section or longer passage in physics and mathematics papers. **Parent** of [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing). Canon: [physics-paper-principles](https://github.com/Harrinive/physics-paper-principles). Workflows developed through work with Prof. Jens Koch.
+Portable Agent Skill for editing a complete LaTeX physics or mathematics section,
+or any passage longer than 12 sentences. It structures and chunks the section,
+then invokes the sibling short-passage workflow for each draft-and-verify round.
+The prose canon is [physics-paper-principles](https://github.com/Harrinive/physics-paper-principles).
 
-## What it does
+## Install
 
-This skill applies **global edits and suggestions** at section scale, then **orchestrates local drafts** through the micro coworker loop — chunking the section and writing each piece into the file with background checks. The next piece may start without waiting for the previous one to pass.
-
-**Scope:** whole LaTeX section or any passage **>12 sentences**. For shorter material, use the companion **micro skill** [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing).
-
-## Install on [Cursor](https://cursor.com)
-
-Requires [physics-paper-principles](https://github.com/Harrinive/physics-paper-principles) and [physics-paper-editing](https://github.com/Harrinive/physics-paper-editing) as **sibling folders**. Install all three together (see the [Cursor Skills docs](https://cursor.com/docs/context/skills)):
+Install all three public repositories as siblings under the portable Agent Skills
+location:
 
 ```bash
 git clone https://github.com/Harrinive/physics-paper-principles.git ~/.agents/skills/physics-paper-principles
@@ -18,47 +16,25 @@ git clone https://github.com/Harrinive/physics-paper-editing.git ~/.agents/skill
 git clone https://github.com/Harrinive/physics-paper-editing-section.git ~/.agents/skills/physics-paper-editing-section
 ```
 
+Hosts may also discover skills from their own user or project paths. Preserve the
+sibling layout: this parent imports the short-passage runtime contract and the
+physics-writing canon.
+
+## Runtime support
+
+The runtime adapters live with the short-passage workflow and cover
+[Cursor](../physics-paper-editing/runtime-cursor.md),
+[OpenAI Codex](../physics-paper-editing/runtime-codex.md), and
+[Claude Code](../physics-paper-editing/runtime-claude.md). The shared
+[runtime contract](../physics-paper-editing/runtime-contract.md) defines the
+confirmed session profile, concurrency waves, result shards, and resume rules.
+
 ## Entry point
 
-Read **`SKILL.md`** first. Linked detail files (`stages.md`, `chunk-contract.md`, `disk-layout.md`, etc.) hold the full rules.
-
----
-
-## Not Cursor? Adapt this skill
-
-**This skill was made for Cursor Agent.** It references Cursor-specific tools (`AskQuestion`, `Task` subagents, compliance monitoring). Do not run it verbatim on other platforms — **adapt it** to your agent's tool surface and install layout. Adapt the three skills together — this parent orchestrator depends on the micro skill for every chunk and on **`physics-paper-principles`** for canon.
-
-### How to adapt
-
-Use your platform's skill-creation workflow first, then port the workflow logic (not copy-paste paths):
-
-| Platform | Install path (typical) | Use this to adapt |
-|----------|------------------------|-------------------|
-| **Cursor** | `~/.cursor/skills/<name>/` or `~/.agents/skills/<name>/` | [Cursor Skills docs](https://cursor.com/docs/context/skills) — or run `/create-skill` in Agent chat |
-| **Claude Code** | `~/.claude/skills/<name>/` or `.claude/skills/<name>/` | [Claude Code skills docs](https://code.claude.com/docs/en/skills) |
-| **OpenAI Codex** | `~/.agents/skills/<name>/` or `.agents/skills/<name>/` (`~/.codex/skills/` legacy) | [Codex Agent Skills](https://developers.openai.com/codex/skills) — run **`$skill-creator`** in Codex to scaffold the port |
-| **GitHub Copilot** | `~/.copilot/skills/<name>/` or `~/.agents/skills/<name>/`; project: `.github/skills/<name>/` or `.agents/skills/<name>/` | [Copilot: add skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) |
-| **Any agent (format reference)** | varies | [Agent Skills open spec](https://agentskills.io/specification) — shared `SKILL.md` frontmatter + body structure |
-
-### Adaptation checklist
-
-**Porter read order:** [SKILL.md](SKILL.md) → platform scaffold (item 2) → [cross-skill.md](cross-skill.md) → sibling [../physics-paper-principles/SKILL.md](../physics-paper-principles/SKILL.md) → [../physics-paper-editing/compliance-monitoring.md](../physics-paper-editing/compliance-monitoring.md) → [disk-layout.md](disk-layout.md) (§ session.md; resume boot).
-
-1. Read `SKILL.md` and linked detail files to understand the workflow.
-2. Invoke your platform's skill-creation guide (table above) — do not hand-roll folder layout.
-3. **Map Cursor-only constructs** to your platform:
-   - `AskQuestion` → one Stage A setup (job, pace, verifier models).
-   - `Task` → delegation API; pass per-worker `model` when supported.
-   - Linked principles (`physics-paper-principles`) → read/preload before drafting; do not copy them into this skill.
-   - `.physics-edit/` → session/resume storage ([disk-layout.md](disk-layout.md), [automation.md](automation.md)).
-4. **Editing setup** — freeze job_mode at Stage A; inherit or default pace and
-   the three verifier tiers (`user_confirmed: true`); chunks inherit the setup.
-5. **Compliance chain** — orchestrator publishes Task plan → each worker Step 0 COMPLIANCE → synthesizer-only `OVERALL` ([../physics-paper-editing/compliance-monitoring.md](../physics-paper-editing/compliance-monitoring.md)). **Orchestrator never** launches micro verifier Tasks or sets `OVERALL` — only micro chunk agents do ([cross-skill.md](cross-skill.md) § Writer ≠ grader).
-6. **Turn/resume** — draft+mark a piece and end the turn (next piece may start
-   while another job is checking); read `session.md` first; honor frozen
-   `job_mode`, `edit_gate`, and `pace`; do not re-run intake.
-7. Keep sibling install layout for principles + micro + this parent (`../physics-paper-principles/` and `../physics-paper-editing/` links).
-8. Test on a short LaTeX passage before relying on the full verifier pipeline.
+Read [SKILL.md](SKILL.md), [stages.md](stages.md), and
+[cross-skill.md](cross-skill.md). Stage A obtains the one session-level
+model-profile choice unless it inherits a user-confirmed parent profile. Later
+chunks reuse that profile without re-asking.
 
 ## License
 

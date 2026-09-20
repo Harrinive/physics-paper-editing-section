@@ -15,7 +15,7 @@ All cross-turn state lives under **`.physics-edit/<section-slug>/`** relative to
 ├── chunks/
 │   └── <chunk_id>.checks       # archived job-round CHECKS when a chunk PASSes
 └── jobs/
-    └── <job_id>/               # snapshot.tex, sentences.json, findings.jsonl, round.md, agents.json
+    └── <job_id>/               # snapshot.tex, sentences.json, findings/, round.md, agents.json
 ```
 
 Job folder schema: [job-state.md](../physics-paper-editing/job-state.md).
@@ -50,12 +50,13 @@ Write at intake. Template:
 - **rewrite_chunks:** [c01, …] — only when mixed
 
 ## Verifier model profile (Stage A — mirror of session.md)
-- Sentence: <slug>
-- Deep: <slug> — narrative + math (Stages B/E too)
-- Synth: <slug>
+- Source: accepted_default | custom | inherit | fallback
+- Sentence: requested `fast`; resolved `<id or unknown>`
+- Deep: requested `capable`; resolved `<id or unknown>` — narrative + math (Stages B/E too)
+- Synth: requested `capable`; resolved `<id or unknown>`
 ```
 
-Pass slugs to micro chunks only when `session.md` has `user_confirmed: true`.
+Pass the recorded profile to micro chunks only when `session.md` has `user_confirmed: true`.
 
 ## manifest.json schema
 
@@ -67,10 +68,14 @@ Pass slugs to micro chunks only when `session.md` has `user_confirmed: true`.
   "created": "2026-09-03",
   "job_mode": "polish",
   "pace": "fast",
+  "runtime": "cursor|codex|claude|other",
   "verifier_profile": {
-    "sentence": "composer-2.5-fast",
-    "deep": "claude-4.6-sonnet-medium-thinking",
-    "synth": "claude-4.6-sonnet-medium-thinking"
+    "profile_choice": "recommended|parent|custom",
+    "profile_source": "accepted_default",
+    "user_confirmed": true,
+    "sentence": {"requested_tier": "fast", "resolved_model": "<id or unknown>", "reasoning": "<level or unknown>", "resolution_source": "accepted_default|custom|inherit|fallback"},
+    "deep": {"requested_tier": "capable", "resolved_model": "<id or unknown>", "reasoning": "<level or unknown>", "resolution_source": "accepted_default|custom|inherit|fallback"},
+    "synth": {"requested_tier": "capable", "resolved_model": "<id or unknown>", "reasoning": "<level or unknown>", "resolution_source": "accepted_default|custom|inherit|fallback"}
   },
   "chunks": []
 }
@@ -115,7 +120,7 @@ drafted → checking    (background job launched)
 checking → checking   (merge round; still dirty / open labels)
 checking → conflict   (OVERALL: CONFLICTS — user decision)
 conflict → checking   (user resolved; new wave)
-checking → pass       (OVERALL: PASS, unmarked, no running Tasks)
+checking → pass       (OVERALL: PASS, unmarked, no running verifier jobs)
 pass → checking       (Stage E boundary fix re-opens the span)
 ```
 
@@ -135,7 +140,7 @@ Create from [examples/session.example.md](examples/session.example.md) at Stage 
 | Job mode | Frozen `polish` \| `rewrite` \| `mixed` |
 | Pace | Frozen `fast` \| `full` |
 | User special requests | Standing + deferred_edits |
-| Verifier model profile | Slugs + `user_confirmed` |
+| Verifier model profile | Requested tiers, resolved models, sources, and `user_confirmed` |
 | Last turn compliance | From CHECKS — not invented by the orchestrator |
 | Current position | `pipeline_stage`, how many pieces are in the file / still being read |
 | Hard rules | One job per mark; honor job_mode + pace; no “reply continue” |
