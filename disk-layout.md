@@ -1,159 +1,47 @@
-# Disk layout & manifest
+# Version-2 section state
 
-**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read with the Read tool** when Stages A or C run, when a Stage D job starts, or when resuming.
-
-All cross-turn state lives under **`.physics-edit/<section-slug>/`** relative to the workspace root (or the `.tex` file's project root). Prefer a slug derived from `\section{...}` title or `\label{...}`.
-
-## Directory layout
-
-```
+```text
 .physics-edit/<section-slug>/
 ├── session.md
 ├── section-brief.md
+├── object-ledger.md
 ├── manifest.json
-├── findings-ledger.md          # Stage B/E structural notes
-├── chunks/
-│   └── <chunk_id>.checks       # archived job-round CHECKS when a chunk PASSes
+├── reviews/
 └── jobs/
-    └── <job_id>/               # snapshot.tex, sentences.json, findings/, round.md, agents.json
+    └── <job_id>/
 ```
 
-Job folder schema: [job-state.md](../physics-paper-editing/job-state.md).
+## session.md
 
-**Git:** add `.physics-edit/` to the project `.gitignore` if edits are ephemeral.
+Store:
 
-## section-brief.md (Stage A)
+- `harness_version: 2`;
+- source file and section anchors;
+- edit intent, model tier, tier source, and user constraints;
+- current stage and next action;
+- section-level quality and verification independence.
 
-Write at intake. Template:
+## section-brief.md
 
-```markdown
-# Section brief: <title>
+Store the section purpose, promised result, physics spine, neighboring context,
+and manuscript conventions. Do not duplicate the full principles files.
 
-## Central message
-<one paragraph>
+## object-ledger.md
 
-## Placement
-- File: <path>
-- Section: <\section title or label>
-- Neighbors: <prior / following sections>
+For every story-bearing object, store role/category, scope, dimensions/scaling,
+included factors, normalization, first use, later payoff, and current
+disposition. Record deliberate ledger changes with the affected chunks.
 
-## Notation & conventions
-<symbols introduced or heavily used in this section>
+## manifest.json
 
-## Audience & prerequisites
-<what readers need before this section>
+Each chunk stores order, anchors, sentence count, edit intent, risk, object
+dependencies, execution path, verification independence, quality axes,
+completion, and snapshot identifier when reviewed.
 
-## Job mode (Stage A — frozen for section)
-- **job_mode:** polish | rewrite | mixed
-- **pace:** fast | full
-- **Rationale:** <1–2 sentences>
-- **rewrite_chunks:** [c01, …] — only when mixed
+Direct chunks need no `jobs/` entry. Create a job directory only for a
+persistent guided/independent review or concurrent file edit.
 
-## Verifier model profile (Stage A — mirror of session.md)
-- Source: accepted_default | custom | inherit | fallback
-- Sentence: requested `fast`; resolved `<id or unknown>`
-- Deep: requested `capable`; resolved `<id or unknown>` — narrative + math (Stages B/E too)
-- Synth: requested `capable`; resolved `<id or unknown>`
-```
+## Version boundary
 
-Pass the recorded profile to micro chunks only when `session.md` has `user_confirmed: true`.
-
-## manifest.json schema
-
-```json
-{
-  "section_slug": "Q-correctable-errors",
-  "tex_file": "Notes/example.tex",
-  "section_label": "sec:Q-correctable",
-  "created": "2026-09-03",
-  "job_mode": "polish",
-  "pace": "fast",
-  "runtime": "cursor|codex|claude|other",
-  "verifier_profile": {
-    "profile_choice": "recommended|parent|custom",
-    "profile_source": "accepted_default",
-    "user_confirmed": true,
-    "sentence": {"requested_tier": "fast", "resolved_model": "<id or unknown>", "reasoning": "<level or unknown>", "resolution_source": "accepted_default|custom|inherit|fallback"},
-    "deep": {"requested_tier": "capable", "resolved_model": "<id or unknown>", "reasoning": "<level or unknown>", "resolution_source": "accepted_default|custom|inherit|fallback"},
-    "synth": {"requested_tier": "capable", "resolved_model": "<id or unknown>", "reasoning": "<level or unknown>", "resolution_source": "accepted_default|custom|inherit|fallback"}
-  },
-  "chunks": []
-}
-```
-
-Each **ChunkRecord**:
-
-```json
-{
-  "chunk_id": "c03",
-  "order": 3,
-  "sentence_count": 8,
-  "tex_anchor": {
-    "file": "Notes/example.tex",
-    "start_marker": "A finite set $\\mathbb{E}=\\{",
-    "end_marker": "where $W=(W_{ab})$ is Hermitian."
-  },
-  "status": "pending",
-  "edit_gate": "polish",
-  "job_id": null,
-  "checks_path": null,
-  "summary": null
-}
-```
-
-| Field | Purpose |
-|-------|---------|
-| `chunk_id` | Stable id (`c01`, `c02`, …) |
-| `order` | Default draft order |
-| `tex_anchor` | Text anchors, not line numbers |
-| `status` | `pending` \| `drafted` \| `checking` \| `conflict` \| `pass` |
-| `edit_gate` | Required on each chunk when `job_mode: mixed` |
-| `job_id` | Active or last `.physics-edit/.../jobs/<id>` |
-| `checks_path` | Set on pass, e.g. `chunks/c03.checks` |
-| `summary` | Two-line what-changed, set on pass |
-
-### Status transitions
-
-```
-pending → drafted     (micro wrote marked interior)
-drafted → checking    (background job launched)
-checking → checking   (merge round; still dirty / open labels)
-checking → conflict   (OVERALL: CONFLICTS — user decision)
-conflict → checking   (user resolved; new wave)
-checking → pass       (OVERALL: PASS, unmarked, no running verifier jobs)
-pass → checking       (Stage E boundary fix re-opens the span)
-```
-
-More than one chunk may be `checking` at a time (one job per marked region).
-
-## Archiving CHECKS
-
-On chunk `pass`, write the synthesizer's verbatim `<!-- CHECKS ... -->` to `chunks/<chunk_id>.checks`. Keep only the 2-line `summary` in orchestrator context.
-
-## session.md (rewrite every turn)
-
-Create from [examples/session.example.md](examples/session.example.md) at Stage A. **Read first on every resume.**
-
-| Section | Purpose |
-|---------|---------|
-| MANDATORY read order | Boot sequence |
-| Job mode | Frozen `polish` \| `rewrite` \| `mixed` |
-| Pace | Frozen `fast` \| `full` |
-| User special requests | Standing + deferred_edits |
-| Verifier model profile | Requested tiers, resolved models, sources, and `user_confirmed` |
-| Last turn compliance | From CHECKS — not invented by the orchestrator |
-| Current position | `pipeline_stage`, how many pieces are in the file / still being read |
-| Hard rules | One job per mark; honor job_mode + pace; no “reply continue” |
-| Next action | Single imperative |
-
-**Authority:** `manifest.json` for chunk `status`; `session.md` for job_mode, pace, profile, special requests, next action.
-
-## Resuming
-
-1. Read **`session.md`** first.
-2. Read `manifest.json` + `section-brief.md` + any `jobs/*/agents.json`.
-3. If any job is `checking` → micro wake protocol first.
-4. Else if user said **next piece** → first `pending` by order.
-5. Else if all `pass` → Stage E (or DONE).
-6. Rewrite `session.md` before ending the turn.
-7. Skip Stages A–C unless the user requests a re-run.
+If an existing session lacks `harness_version: 2`, read the version-1 layout in
+[legacy-v1/disk-layout.md](legacy-v1/disk-layout.md). Do not rewrite its schema.

@@ -1,193 +1,72 @@
 ---
 name: physics-paper-editing-section
 description: >-
-  Edits whole LaTeX sections (>12 sentences) by orchestrating the
-  physics-paper-editing coworker loop per chunk. Parent of that micro skill.
-  Stages A–E: intake, structural pass, chunking, non-blocking
-  draft+background-verify, integration. Disk state in .physics-edit/. Canon is
-  physics-paper-principles. For ≤12 sentences use physics-paper-editing directly.
-compatibility: >-
-  Requires filesystem access for drafting. Full verification requires subagent
-  delegation; adapters are provided for Cursor, Codex, and Claude Code through the sibling
-  physics-paper-editing runtime adapters.
+  Physics-first, capability-adaptive editing for whole LaTeX physics sections or
+  passages over 12 sentences. Builds a section physics spine and global object
+  ledger, edits argument-sized chunks through physics-paper-editing, and reviews
+  the assembled section without forcing every chunk through the same harness.
 ---
 
-# Physics Paper Editing — Section (parent)
+# Physics paper editing — section
 
-Section-level editor for physics and mathematics LaTeX. **Orchestrates** the micro skill ([physics-paper-editing](../physics-paper-editing/SKILL.md)); does not replace its coworker loop. Canon: **`physics-paper-principles`**.
+Use for a whole `\section{...}` or a passage over 12 typographic sentences. Use
+**`physics-paper-editing`** directly for shorter passages. Canon is
+**`physics-paper-principles`**.
 
-**Scope:** passages **>12 sentences** or whole `\section{...}` blocks. For **≤12 sentences**, use the micro skill directly. The sibling [runtime contract](../physics-paper-editing/runtime-contract.md) is the sole authority for model profiles, delegation, and capability fallbacks.
+New sessions use `harness_version: 2`. A section session without that field
+resumes through [legacy-v1/LEGACY.md](legacy-v1/LEGACY.md); never migrate a live
+version-1 session in place.
 
-## When to use
+## Read order
 
-- Edit a whole `\section{...}` or any passage **>12 sentences** in a physics/math LaTeX manuscript
-- Orchestrate chunk-by-chunk drafting with disk state under `.physics-edit/`
-- Resume a section edit after context compaction (read `session.md` first)
+1. On resume, read `session.md` first, then [cross-skill.md](cross-skill.md).
+2. Read [stages.md](stages.md) and [disk-layout.md](disk-layout.md).
+3. Before chunk editing, read [chunk-contract.md](chunk-contract.md) and the
+   active micro [SKILL.md](../physics-paper-editing/SKILL.md).
+4. Read [scope-and-verifiers.md](scope-and-verifiers.md) for Stage B or E review.
+5. Before completion, read [test-checklist.md](test-checklist.md).
 
-**Route elsewhere:** **≤12 sentences** → **`physics-paper-editing`** micro skill only — do not start macro Stages A–E.
+## Governing design
 
-## Agent read order
+The section is organized around a **global physics spine** and **global object
+ledger** before local prose is optimized. Every chunk inherits them. A chunk
+may not introduce a competing normalization, factor convention, duplicate
+symbol, or altered scope without reconciling the global ledger.
 
-| When | Read (in order) |
-|------|-----------------|
-| **Every resume** | `session.md` → [cross-skill.md](cross-skill.md) § ON RESUME |
-| **Stages A–C, E** | [stages.md](stages.md), [disk-layout.md](disk-layout.md) |
-| **Stage B or E** | + [scope-and-verifiers.md](scope-and-verifiers.md) |
-| **Stage C or D** | + [chunk-contract.md](chunk-contract.md) |
-| **Stage D (per chunk)** | micro [SKILL.md](../physics-paper-editing/SKILL.md) — coworker loop on `chunk_text` only |
-| **Every user-facing turn** | [user-communication.md](../physics-paper-editing/user-communication.md) |
-| **Automation / hooks** | [automation.md](automation.md) (optional) |
-| **Before declaring done** | [test-checklist.md](test-checklist.md) |
+Chunking remains an attention and persistence mechanism; it does not require
+micro-agent ceremony. A strong section editor may author chunks directly. An
+economy editor uses the scaffolded micro path. Each chunk is routed separately
+by scientific risk.
 
-| User gives | Use |
-|------------|-----|
-| ≤12 sentences | **Micro only** — do not start macro |
-| >12 sentences or whole `\section{...}` | **This skill** (Stages A–E) |
+## Stages
 
-Shared routing, terminology, verifier handoff: [cross-skill.md](cross-skill.md).
+| Stage | Outcome |
+|---|---|
+| A | Version-2 session, edit intent, model tier, section scope |
+| B | Section physics spine, global object ledger, structural plan |
+| C | Argument-sized chunks, each at most 12 sentences and LaTeX-safe |
+| D | Adaptive editing per chunk; global ledger updated deliberately |
+| E | One section-wide physics-story, object-consistency, and formal review |
 
-**First reply:** confirm scope and target/resume state. Ask polish / rewrite / mixed only if unclear. Inherit pace and models when a confirmed profile exists ([user-communication.md](../physics-paper-editing/user-communication.md)). Named physical objects: consider meaning and definition choice at Stage B; all suitable definition forms are allowed. Micro definition halt at Stage D applies only to unresolved essential scientific ambiguity.
+Do not launch one reviewer per sentence. Do not require an independent worker
+for a low-risk chunk. Reopen only spans that fail a required quality axis.
 
-## Purpose
+## Persistence
 
-Edit a whole `\section{...}` (or any passage **>12 sentences**) by:
+Section work is normally resumable, so persist the version-2 session, brief,
+object ledger, chunk manifest, and quality results under `.physics-edit/` as
+specified in [disk-layout.md](disk-layout.md).
 
-1. Fixing **structure** at section scale first (Stage B) — may background-verify.
-2. Splitting into **≤12-sentence chunks** (Stage C).
-3. **Drafting** each chunk into the file with marks and background checks (Stage D). The user may keep editing a marked piece or say **next piece** without waiting for `PASS`.
-4. **Integrating** chunk boundaries (Stage E).
+## Completion
 
-The section orchestrator writes **no new body prose** — only structure-level moves (reorder, split, signpost). Prose is authored by the micro coworker loop at chunk scope.
-
-**Non-negotiable:** every chunk job runs background verify. `OVERALL: PASS` unmarks a chunk; it is **not** required before the next piece may be drafted.
-
-## ON RESUME (mandatory)
-
-Follow [cross-skill.md](cross-skill.md) § ON RESUME. Detail: [disk-layout.md](disk-layout.md) § session.md · [automation.md](automation.md) § Context compaction recovery.
-
-On resume: if any job is `checking`, run the micro wake protocol (related hashes → interrupt → harvest → merge) **before** starting a new piece.
-
-## Terminology
-
-| Term | Meaning |
-|------|---------|
-| **Stage A–E** | Section pipeline (intake → structural → chunk → draft+check → integrate) |
-| **Fast / full** | Background-check scope per chunk — never whether the user waits |
-| **Coworker loop** | Micro draft → mark → snapshot → background verify → merge |
-| **Section orchestrator** | Macro main agent — structure only |
-| **Chunk agent** | Micro producer for one chunk — sole author of that chunk’s prose |
-
-Full map: [cross-skill.md](cross-skill.md) § Terminology map.
-
-## Agent tiers at section scale
-
-| Tier | Who | Writes prose? | Dispatches? | Grades? |
-|------|-----|---------------|-------------|---------|
-| **Section orchestrator** | macro main agent | No (structure-only) | Yes — may start another piece while one is checking | No |
-| **Chunk agent** | micro skill producer | Yes | Yes (micro verifiers) | No |
-| **Micro verifier / synthesizer** | per micro rules | No | No | synthesizer only |
-
-**Invariants:** [cross-skill.md](cross-skill.md) § Writer ≠ grader · Orchestrator ≠ self-auditor. One **job** per marked region. Do not nest verifier fan-out inside another verifier.
-
-## Pipeline — Stages A–E
-
-```mermaid
-flowchart TD
-  A[Stage A Intake + brief] --> B[Stage B Macro structural]
-  B --> C[Stage C Chunk + manifest]
-  C --> D[Stage D Draft plus background check]
-  D -->|user says next piece| D
-  D -->|all chunks pass and unmarked| E[Stage E Integration]
-  E --> done[Section DONE]
-```
-
-| Stage | Goal | Detail |
-|-------|------|--------|
-| **A** | Intake, brief, verifier profile | [stages.md](stages.md) § Stage A |
-| **B** | Structure-only fixes | [stages.md](stages.md) § Stage B · [scope-and-verifiers.md](scope-and-verifiers.md) |
-| **C** | Chunk + manifest | [stages.md](stages.md) § Stage C · [disk-layout.md](disk-layout.md) |
-| **D** | Draft + mark + background job per chunk | [stages.md](stages.md) § Stage D · [chunk-contract.md](chunk-contract.md) |
-| **E** | Boundary integration | [stages.md](stages.md) § Stage E · [scope-and-verifiers.md](scope-and-verifiers.md) |
-
-## Workflow checklist
-
-```
-[ ] 0. Confirm scope — whole section or >12 sentences; not a micro-sized quote
-[ ] A. Intake — read section + neighbors; persist job_mode, pace, models
-[ ] B. Macro structural — section-scoped verifiers (may be background); structure-only .tex; update session.md
-[ ] C. Chunk — split ≤12 sentences; manifest.json; update session.md
-[ ] D. Draft a pending chunk via micro coworker loop; mark it; schedule its verification
-[ ]    User may edit that piece or say next piece (second mark / second job)
-[ ] E. When all chunks pass (unmarked, no open conflicts) — boundary check; route fixes through micro
-[ ] Done — section receipt + integration PASS
-```
-
-**Hard rules:**
-
-- **No nested sub-subagents** — only the micro skill launches verifier jobs.
-- **Disk is memory** — persist `session.md` + `section-brief.md` + `manifest.json` + `jobs/<id>/`.
-- Honor `job_mode` and `pace` — frozen at Stage A; do not re-ask on resume.
-- **Verifier models** — reuse a confirmed or inherited profile; record the no-interaction fallback when no user-choice facility exists.
-- **Boundary fixes** in Stage E go through the micro coworker loop (≤12 sentences each).
-- Do not skip Stage B because chunks will be checked later.
-- Stages B/E section verifiers do not emit CHECKS in the narrative — record findings in `findings-ledger.md` ([scope-and-verifiers.md](scope-and-verifiers.md)).
-- User-facing copy: [user-communication.md](../physics-paper-editing/user-communication.md). Do not say “reply continue.”
-
-## Response format
-
-Follow [user-communication.md](../physics-paper-editing/user-communication.md).
-
-Audit drawer:
-
-- Stages A–C, E: `Mode: section-edit · stage:<A|B|C|E> · <slug>`
-- Stage D: `Mode: section-edit · chunk:<id> · verify:<running|partial|complete> · …`
-
-Section DONE (Stage E only, audit drawer):
-
-```
-<!-- SECTION DONE
-section: <slug>
-chunks: <N> pass
-integration: PASS
--->
-```
-
-Per-chunk CHECKS live in `.physics-edit/<slug>/chunks/*.checks` and `jobs/<id>/` — reference paths, do not paste all blocks.
-
-## File map
-
-**Macro pipeline**
-
-| File | Role |
-|------|------|
-| [stages.md](stages.md) | Stages A–E step-by-step |
-| [disk-layout.md](disk-layout.md) | `.physics-edit/` layout, manifest, jobs, session.md |
-| [chunk-contract.md](chunk-contract.md) | Stage D macro ↔ micro I/O |
-| [scope-and-verifiers.md](scope-and-verifiers.md) | Section-scoped verifier jobs (B, E) |
-| [automation.md](automation.md) | Resume, compaction recovery, optional watcher |
-| [test-checklist.md](test-checklist.md) | End-to-end acceptance |
-
-**Shared**
-
-| File | Role |
-|------|------|
-| [cross-skill.md](cross-skill.md) | Routing, terminology, verifier handoff, ON RESUME (lives here — parent) |
-| [coworker-loop.md](../physics-paper-editing/coworker-loop.md) | Draft-first loop |
-| [user-communication.md](../physics-paper-editing/user-communication.md) | Workbench UX |
-| [../physics-paper-principles/SKILL.md](../physics-paper-principles/SKILL.md) | Prose canon |
-
-## Related skills
-
-| Skill | When |
-|-------|------|
-| **physics-paper-principles** | Canon for sentence / narrative / math / physical lead |
-| **physics-paper-editing** | Micro skill — invoked per chunk in Stage D |
+A section is ready only when all chunks are integrated, no required quality
+axis is `FIX` or `USER_DECISION`, and Stage E passes global physics lead and
+object consistency. Verification independence is recorded separately from
+content quality.
 
 ## Out of scope
 
-- Passages **≤12 sentences** — micro skill only; do not start macro Stages A–E
-- Restating prose principles — those live in **`physics-paper-principles`**
-- Section orchestrator writing chunk body prose (structure-only moves in Stages B/C/E)
-- Skipping Stage B because chunks will be checked later
-- Nested sub-subagents beyond the micro skill's verifier jobs
-- Waiting for chunk `PASS` before the user may start the next piece
+- Passages of at most 12 sentences
+- Inventing missing physical meaning
+- Treating chunk boundaries as permission to redefine global objects locally
+- Resuming a live version-1 session with version-2 state

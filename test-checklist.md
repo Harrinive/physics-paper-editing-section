@@ -1,66 +1,27 @@
-# End-to-end test checklist
+# Section acceptance checklist
 
-**For agents:** Start with [SKILL.md](SKILL.md) § Agent read order. **Read before** declaring a section edit complete, or to validate a dry-run setup.
+## Version-2 state
 
-## Dry-run (no .tex writes)
+- [ ] `session.md` records `harness_version: 2`, routing, constraints, and next action.
+- [ ] `section-brief.md` contains the global physics spine.
+- [ ] `object-ledger.md` covers every new or changed story-bearing object.
+- [ ] Chunks are argument-sized, at most 12 sentences, and LaTeX-safe.
+- [ ] Every chunk inherited the current spine and ledger.
+- [ ] No direct chunk manufactured worker, snapshot, or legacy `OVERALL` state.
+- [ ] No version-2 path launched one worker per sentence.
+- [ ] Any factor or normalization change passed factor round-trip, inline-substitution, and payoff tests.
+- [ ] Stage E reviewed global physics story and object consistency once.
+- [ ] Required quality axes pass; no unresolved `FIX` or `USER_DECISION` remains.
+- [ ] Verification independence is stated accurately.
 
-```
-[ ] Count sentences in target section — must be >12 for macro (or user wants whole section)
-[ ] Identify \section{} boundaries and tex file path
-[ ] Estimate chunk count (sentences ÷ ~8–10 per chunk)
-[ ] Confirm no chunk would break inside equations/cites/refs
-[ ] Choose section-slug for .physics-edit/
-```
+## Regression scenarios
 
-Report: `Dry-run: <N> sentences → ~<M> chunks feasible`.
+- [ ] A one-use reduced weight is absorbed into the physically relevant total.
+- [ ] A genuinely reused normalized function is retained.
+- [ ] A valid construction definition is not forced into an invented operational form.
+- [ ] A user prohibition on subagents is honored.
+- [ ] An unknown model takes economy routing without an invented identifier.
+- [ ] A version-1 session resumes under legacy documents without conversion.
 
-## Full acceptance (after Stage E)
-
-```
-[ ] section-brief.md exists with job_mode, pace, and verifier profile mirror
-[ ] session.md exists; pipeline_stage matches manifest; profile resolved
-[ ] manifest.json — every chunk status: pass
-[ ] PPE marks removed from passed chunks
-[ ] chunks/*.checks — one file per passed chunk with OVERALL: PASS
-[ ] chunks/*.checks — compliance_* PASS; one sentence_S*k*: line per label (no ranges)
-[ ] jobs/<id>/findings/ contains one result shard per verifier that ran
-[ ] Source .tex — anchors resolve; no [INSERT PROSE] placeholders remain
-[ ] Stage E integration — no unresolved FAIL
-[ ] Audit drawer includes <!-- SECTION DONE ... --> with integration: PASS
-```
-
-## Regression checks
-
-```
-[ ] Micro skill works standalone on ≤12-sentence quotes (draft-first, marks, runtime-aware verification)
-[ ] Micro gate routes >12 sentences to this macro skill
-[ ] Stage D may start next piece while another job is checking (one job per mark)
-[ ] Stage D does **not** withhold the draft before PASS
-[ ] Host-native lifecycle permits verify:running / verify:partial without CHECKS; no FAIL reloop
-[ ] Verifier profile is user-confirmed once and inherited — not re-asked per chunk
-[ ] Orchestrator did not author chunk body prose
-[ ] Worker plan has phase1_sentence_tasks: 0
-[ ] Full-scope chunks: no fast-polish math skip (caller: section-orchestrator)
-[ ] Section orchestrator did not launch micro verifiers directly
-[ ] Cold resume honors job_mode and pace; wake protocol runs if a job is checking
-[ ] CONFLICTS leaves user text and asks one decision
-[ ] Definition choice: a supported operational definition is preferred when useful; a valid construction proceeds; only unresolved essential scientific ambiguity triggers definition halt
-[ ] User-facing turns use named states — no progress bars, no “reply continue”
-```
-
-## Example dry-run target
-
-Any `\section{...}` with **>12** typographic sentences is a valid parent-skill candidate. Count sentences, estimate chunks (roughly 8–10 sentences each), and confirm no chunk would split inside math, `\cite{}`, or `\ref{}`.
-
-**Dry-run result shape:** `Dry-run: <N> sentences → ~<M> chunks feasible`. Sample: [examples/dry-run-manifest.example.json](examples/dry-run-manifest.example.json).
-
-## Failure recovery
-
-| Symptom | Action |
-|---------|--------|
-| Agent forgot workflow / improvised edits | Read `session.md` first; follow Next action |
-| User directive ignored | Re-read § User special requests; deferred_edits |
-| Construction marks missing | Last snapshot + tex_anchor; ask before re-wrap |
-| Chunk stuck `checking` | Completion protocol; harvest result shards; do not drop findings |
-| tex_anchor not found | Prefer PPE sentinels; else refresh markers |
-| Integration FAIL at boundary | ≤12-sentence span → micro coworker loop → re-run Stage E |
+The detailed micro semantic fixtures live in
+[semantic-fixtures.md](../physics-paper-editing/semantic-fixtures.md).
