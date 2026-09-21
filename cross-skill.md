@@ -38,7 +38,7 @@ orchestrator-versus-author split in version 2.
 2. If `harness_version` is absent or not `2`, use
    [legacy-v1/LEGACY.md](legacy-v1/LEGACY.md).
 3. For version 2, reject stale reviews whose snapshot does not match the live
-   chunk or section.
+   chunk or section. Detail: [automation.md](automation.md).
 4. Honor the recorded edit intent, tier, user constraints, and next action.
 5. Do not repeat model-profile questions already resolved by the adapter or user.
 

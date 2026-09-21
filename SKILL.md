@@ -20,6 +20,7 @@ version-1 session in place.
 ## Read order
 
 1. On resume, read `session.md` first, then [cross-skill.md](cross-skill.md).
+   For resume automation bounds, also read [automation.md](automation.md).
 2. Read [stages.md](stages.md) and [disk-layout.md](disk-layout.md).
 3. Before chunk editing, read [chunk-contract.md](chunk-contract.md) and the
    active micro [SKILL.md](../physics-paper-editing/SKILL.md).
