@@ -84,7 +84,7 @@ How many sentences in the target passage?
 
 1. **Stage A** — freeze `job_mode`; obtain the one model-profile choice defined by [runtime-contract.md](../../physics-paper-editing/legacy-v1/runtime-contract.md), then persist role tiers, resolved identifiers, reasoning levels, and source in `session.md`, `section-brief.md`, and `manifest.json`.
 2. Set **`user_confirmed: true`** only after the user accepts the role-based profile, selects inheritance, or supplies custom mappings. Displaying defaults alone leaves it `false`.
-3. **Stages B, D, E** — reuse the recorded profile; a `fallback` profile may have `user_confirmed: false`.
+3. **Stages B, D, E** — reuse the recorded user-confirmed profile; a pending profile cannot authorize worker launch.
 4. **Per chunk (Stage D)** — no re-ask when the profile is recorded:
 
 | Session row | Used for |
@@ -95,7 +95,7 @@ How many sentences in the target passage?
 
 **Invalid skips:** `manifest.json` / `section-brief.md` model entries without a matching recorded profile in `session.md`.
 
-**Hard stop:** do not delegate verification until the profile is confirmed, explicitly inherited from a confirmed parent session, or recorded through the runtime's no-interaction fallback. Do not re-ask for every chunk.
+**Hard stop:** do not delegate verification until the user confirms a profile for this top-level job or it is inherited from a user-confirmed parent section session. A no-interaction fallback is self-only; it cannot authorize worker launch. Do not re-ask for every chunk.
 
 ---
 
@@ -141,7 +141,7 @@ When resuming a section edit (new chat, **next piece**, context compaction):
 3. If any job is `checking` → micro wake protocol (related hashes → interrupt → harvest → merge) **before** a new piece.
 4. Honor `job_mode`, `pace`, and per-chunk `edit_gate`; do not re-ask.
 5. Honor **User special requests**.
-6. Profile must be recorded as confirmed, inherited, or no-interaction fallback before verifier jobs.
+6. Profile must be user-confirmed for this job or inherited from a user-confirmed parent session before verifier jobs.
 7. Execute **Next action**; rewrite `session.md` before ending the turn.
 
 Detail: [disk-layout.md](disk-layout.md) § session.md · [automation.md](automation.md).

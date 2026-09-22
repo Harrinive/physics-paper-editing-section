@@ -11,6 +11,7 @@ model_tier: strong | economy | unknown
 tier_source: adapter | user | inherited | fallback
 scientific_risk: low | medium | high
 user_constraints: <verbatim relevant constraints>
+reviewer_model_profile: <user-confirmed section profile, when workers are used>
 section_physics_spine: <current spine>
 global_object_ledger: <current ledger>
 adjacent_context: <one to three sentences each side>

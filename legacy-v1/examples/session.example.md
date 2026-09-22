@@ -42,7 +42,7 @@ Standing editing constraints from the user — **read every turn**; pass to ever
 - **confirmed_at:** Stage A · `<YYYY-MM-DD>` (or `—`)
 - **manifest mirror:** `manifest.json` → `verifier_profile` must match when confirmed
 
-On resume: if `user_confirmed: false`, collect the session-level profile choice when the runtime supports interaction; otherwise retain the recorded no-interaction fallback. Never silently invent model identifiers from brief/manifest alone.
+On resume: if `user_confirmed: false`, collect the session-level profile choice before launching workers. When interaction is unavailable, keep review self-only and the choice pending. Never silently invent model identifiers from brief/manifest alone.
 
 ## Last turn compliance
 

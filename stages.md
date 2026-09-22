@@ -7,8 +7,10 @@
 2. Infer `edit_intent`; ask only if copyedit versus substantive work is genuinely
    ambiguous and changes scope.
 3. Resolve model tier through the runtime adapter and classify initial risk.
-4. Create version-2 state using [disk-layout.md](disk-layout.md).
-5. Preserve user constraints and manuscript conventions.
+4. If subagents will be used, ask for one model profile before the first launch,
+   following the micro [runtime contract](../physics-paper-editing/runtime-contract.md).
+5. Create version-2 state using [disk-layout.md](disk-layout.md).
+6. Preserve user constraints and manuscript conventions.
 
 ## Stage B — Physics architecture
 

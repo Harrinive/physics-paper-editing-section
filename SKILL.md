@@ -52,6 +52,12 @@ by scientific risk.
 Do not launch one reviewer per sentence. Do not require an independent worker
 for a low-risk chunk. Reopen only spans that fail a required quality axis.
 
+Before the first subagent in a new section session, obtain the user's model
+choice using the micro skill's [runtime contract](../physics-paper-editing/runtime-contract.md).
+Record the confirmed profile in `session.md` and pass it to every chunk and the
+section-wide review. Do not launch a chunk or section reviewer while the choice
+is pending.
+
 ## Persistence
 
 Section work is normally resumable, so persist the version-2 session, brief,

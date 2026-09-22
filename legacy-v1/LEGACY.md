@@ -127,7 +127,7 @@ flowchart TD
 - **No nested sub-subagents** — only the micro skill launches verifier jobs.
 - **Disk is memory** — persist `session.md` + `section-brief.md` + `manifest.json` + `jobs/<id>/`.
 - Honor `job_mode` and `pace` — frozen at Stage A; do not re-ask on resume.
-- **Verifier models** — reuse a confirmed or inherited profile; record the no-interaction fallback when no user-choice facility exists.
+- **Verifier models** — reuse a user-confirmed profile for this job or one inherited from a user-confirmed parent section session. Without a user-choice facility, use self-only checks and record the pending choice.
 - **Boundary fixes** in Stage E go through the micro coworker loop (≤12 sentences each).
 - Do not skip Stage B because chunks will be checked later.
 - Stages B/E section verifiers do not emit CHECKS in the narrative — record findings in `findings-ledger.md` ([scope-and-verifiers.md](scope-and-verifiers.md)).

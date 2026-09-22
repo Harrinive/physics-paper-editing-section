@@ -17,7 +17,8 @@ Store:
 
 - `harness_version: 2`;
 - source file and section anchors;
-- edit intent, model tier, tier source, and user constraints;
+- edit intent, model tier, tier source, user constraints, and the reviewer
+  model profile with its choice, source, and `user_confirmed` value;
 - current stage and next action;
 - section-level quality and verification independence.
 

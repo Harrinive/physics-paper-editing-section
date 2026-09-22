@@ -29,7 +29,7 @@ If the chat was summarized or the user asks about an in-progress section edit:
 2. Follow **Next action** and **Hard rules**.
 3. Do not re-run job or pace intake.
 4. Honor **User special requests**.
-5. Do **not** launch verifier jobs without a confirmed, inherited, or recorded no-interaction-fallback profile.
+5. Do **not** launch verifier jobs without a user-confirmed profile for this job or one inherited from a user-confirmed parent section session. A no-interaction fallback is self-only.
 6. Do **not** improvise the old wait-until-PASS loop.
 
 ## Optional file watcher

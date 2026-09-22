@@ -15,7 +15,8 @@ and physics-paper-principles canon.
 Every chunk receives:
 
 - `harness_version: 2`;
-- edit intent, model tier, tier source, and user constraints;
+- edit intent, model tier, tier source, user constraints, and the section's
+  user-confirmed reviewer model profile;
 - section physics spine;
 - global object ledger;
 - adjacent context and manuscript conventions;
@@ -40,7 +41,9 @@ orchestrator-versus-author split in version 2.
 3. For version 2, reject stale reviews whose snapshot does not match the live
    chunk or section. Detail: [automation.md](automation.md).
 4. Honor the recorded edit intent, tier, user constraints, and next action.
-5. Do not repeat model-profile questions already resolved by the adapter or user.
+5. Reuse a user-confirmed profile from this section session. An adapter-resolved
+   capability tier alone does not confirm a model choice; ask before delegation
+   if the profile is still pending.
 
 ## Completion mapping
 
