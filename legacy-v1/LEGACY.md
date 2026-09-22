@@ -14,6 +14,10 @@ compatibility: >-
 
 # Physics Paper Editing — Section (parent)
 
+> **CLOSED LEGACY WORKFLOW.** Retain this document only to interpret historical
+> artifacts. Do not resume it, launch its worker topology, or count its checks
+> toward current work. Start a fresh version-2 editing round instead.
+
 Section-level editor for physics and mathematics LaTeX. **Orchestrates** the micro skill ([physics-paper-editing](../../physics-paper-editing/legacy-v1/LEGACY.md)); does not replace its coworker loop. Canon: **`physics-paper-principles`**.
 
 **Scope:** passages **>12 sentences** or whole `\section{...}` blocks. For **≤12 sentences**, use the micro skill directly. The sibling [runtime contract](../../physics-paper-editing/legacy-v1/runtime-contract.md) is the sole authority for model profiles, delegation, and capability fallbacks.

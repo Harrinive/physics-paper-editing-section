@@ -15,6 +15,8 @@ and physics-paper-principles canon.
 Every chunk receives:
 
 - `harness_version: 2`;
+- the current `round_id`, declared language coverage, and section/chunk snapshot
+  identifiers;
 - edit intent, model tier, tier source, user constraints, and the section's
   user-confirmed reviewer model profile;
 - section physics spine;
@@ -35,18 +37,23 @@ orchestrator-versus-author split in version 2.
 
 ## Resume
 
-1. Read `session.md`, `section-brief.md`, `object-ledger.md`, and `manifest.json`.
-2. If `harness_version` is absent or not `2`, use
-   [legacy-v1/LEGACY.md](legacy-v1/LEGACY.md).
-3. For version 2, reject stale reviews whose snapshot does not match the live
+1. Resolve `CURRENT` and read that version-2 round's `session.md`,
+   `section-brief.md`, `object-ledger.md`, and `manifest.json`.
+2. If the only state is legacy or lacks `harness_version: 2`, treat it as
+   closed history and create a fresh version-2 round. Do not copy its PASS or
+   completion state into the new manifest.
+3. Reject stale reviews whose snapshot does not match the live
    chunk or section. Detail: [automation.md](automation.md).
 4. Honor the recorded edit intent, tier, user constraints, and next action.
-5. Reuse a user-confirmed profile from this section session. An adapter-resolved
-   capability tier alone does not confirm a model choice; ask before delegation
-   if the profile is still pending.
+5. At the first reply of a resumed conversation, ask for a fresh explicit model
+   choice. The saved profile or a standing project instruction may be shown as
+   the recommended option but does not replace the question. Reuse the answer
+   within the current conversation. An adapter-resolved capability tier alone
+   does not confirm a model choice.
 
 ## Completion mapping
 
 Chunk `completion: ready` maps to manifest status `ready`. `needs_fix` maps to
 `editing`; `needs_user` maps to `needs_user`. The section is ready only after
-Stage E passes its required axes.
+Stage E passes its required axes and the declared language coverage is complete
+on current snapshots.

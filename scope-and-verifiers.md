@@ -23,5 +23,8 @@ Run one holistic reviewer. Add one math reviewer only when the section contains
 changed formal content. Use the micro conflict adjudicator only for an actual
 incompatible scientific recommendation.
 
-Record section-level quality axes and affected spans. Do not emit one result per
-sentence and do not rerun clean chunks merely to reproduce local checks.
+Record section-level quality axes, affected spans, reviewed snapshot, and actual
+model metadata. Stage E does not emit sentence results: exhaustive sentence
+coverage belongs to each Stage-D chunk and must already be current. Do not
+launch one worker per sentence. Rerun a clean chunk only when its snapshot or a
+dependency from the global ledger has changed.
