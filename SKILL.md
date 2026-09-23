@@ -1,17 +1,17 @@
 ---
 name: physics-paper-editing-section
 description: >-
-  Physics-first, capability-adaptive editing for whole physics sections or
-  technical passages over 12 sentences in LaTeX, Markdown, or plain text.
+  Physics-first editing for whole physics sections of any length or technical
+  passages over 12 sentences in LaTeX, Markdown, or plain text.
   Builds a section physics spine and global object ledger, edits argument-sized
   chunks through physics-paper-editing, and reviews the assembled text.
 ---
 
 # Physics paper editing — section
 
-Use for a whole physics section, a technical note, or any physics passage over
-12 typographic sentences in LaTeX, Markdown, or plain text. Use
-**`physics-paper-editing`** directly for shorter passages. Canon is
+Use for a whole physics section of any length, a technical note, or any physics
+passage over 12 typographic sentences in LaTeX, Markdown, or plain text. Use
+**`physics-paper-editing`** directly for shorter non-section passages. Canon is
 **`physics-paper-principles`**.
 
 All legacy/version-1 sessions are closed historical records. Never resume them
@@ -24,7 +24,7 @@ snapshot; see [disk-layout.md](disk-layout.md).
 1. Before the first user-facing reply, read the micro skill's
    [runtime-contract.md](../physics-paper-editing/runtime-contract.md) and
    [user-communication.md](../physics-paper-editing/user-communication.md).
-   Before later replies, reread the communication policy as needed.
+   Follow the communication policy before every later user-facing reply.
 2. On resume, resolve the active version-2 round through `CURRENT`, read that
    round's `session.md`, then [cross-skill.md](cross-skill.md).
    For resume automation bounds, also read [automation.md](automation.md).
@@ -41,10 +41,12 @@ ledger** before local prose is optimized. Every chunk inherits them. A chunk
 may not introduce a competing normalization, factor convention, duplicate
 symbol, or altered scope without reconciling the global ledger.
 
-Chunking remains an attention and persistence mechanism; it does not require
-micro-agent ceremony. A strong section editor may author chunks directly. An
-economy editor uses the scaffolded micro path. Each chunk is routed separately
-by scientific risk.
+Chunking remains an attention and persistence mechanism. A strong section
+editor may author chunks directly; an economy editor uses the scaffold. Each
+ordinary chunk uses the micro skill's `direct | reviewed` contract. A
+source-format-safe unit that cannot be split below 13 sentences remains one
+section-owned oversized chunk and uses the reviewed contract directly rather
+than violating a definition or equation boundary.
 
 Every chunk must preserve the section's established terminology and notation.
 Chunk assembly may not introduce a new clipped label, mathematical alias, or
@@ -55,24 +57,24 @@ necessary, defined, and reconciled deliberately.
 
 | Stage | Outcome |
 |---|---|
-| A | Version-2 round, edit intent, language coverage, model tier, section scope |
+| A | Version-2 round, immutable source, edit intent, language coverage, role-to-model policy, section scope |
 | B | Section physics spine, global object ledger, structural plan |
-| C | Argument-sized chunks, each at most 12 sentences and source-format-safe |
-| D | Adaptive editing per chunk; global ledger updated deliberately |
+| C | Source-format-safe argument chunks, normally at most 12 sentences, with a defined oversized-unit fallback |
+| D | Direct or reviewed editing per chunk; global ledger updated deliberately |
 | E | One section-wide physics-story, object-consistency, and formal review |
 
-Do not launch one reviewer per sentence. Do not require an independent worker
-for a low-risk chunk. Reopen only spans that fail a required quality axis.
+Do not launch one reviewer per sentence. A reviewed chunk uses one whole-unit
+sentence reviewer and one terminology-and-notation reviewer, plus triggered
+specialists.
+Do not require a reviewer for a low-risk direct chunk. Reopen only spans that
+fail a required quality axis.
 
-In the first user-facing reply of every new conversation that invokes this
-skill, ask which models to use if subagents are needed, following the micro
-skill's [runtime contract](../physics-paper-editing/runtime-contract.md). Ask
-before substantive editing, even if the section may ultimately need no
-subagents. A standing preference may be offered as the recommended choice but
-does not replace the question. Record the user's explicit answer in
-`session.md` and pass it to every chunk and the section-wide review. Chunks do
-not ask again. Do not begin substantive editing or launch a reviewer while the
-choice is pending.
+In the first user-facing reply, follow the micro skill's
+[runtime contract](../physics-paper-editing/runtime-contract.md). If a standing
+project or conversation role-to-model policy exists, state its mapping
+and continue without asking for confirmation. Otherwise ask and wait. Record
+the active mapping in `session.md` and pass it to every chunk and section-wide
+review. Chunks do not ask again.
 
 Every round also declares `language_coverage: selective | exhaustive`.
 Selective coverage audits changed or diagnosed sentences plus chunk-level
@@ -88,8 +90,9 @@ changed.
 
 ## Persistence
 
-Section work is normally resumable, so persist each version-2 round, its brief,
-object ledger, chunk manifest, source hashes, and quality results under
+Section work is normally resumable, so persist each version-2 round, its
+immutable original section text and boundaries, current candidate, brief,
+context revision and object-ledger revision, chunk manifest, hashes, and quality results under
 `.physics-edit/` as specified in [disk-layout.md](disk-layout.md). Historical
 rounds remain immutable evidence and never satisfy a later round.
 
@@ -110,16 +113,15 @@ Stage E passes global physics lead, object consistency, and assembled-text
 terminology and notation. Verification independence is recorded separately
 from content quality.
 
-For a scoped section copyedit, inherit the micro skill's completion boundary:
-an untouched pre-existing violation outside the authorized change scope may be
-recorded as a limitation rather than repaired. Stage E must still check the
-assembled section, and every violation introduced, changed, or left unresolved
-inside the required coverage blocks completion. A section completed under this
-exception must not be described as fully compliant with the canon.
+If any reviewer discovers a scientific defect in the author's source that the
+requested task did not already authorize repairing, pause the entire section
+round with `needs_user`. Preserve the source and ask one focused question; do
+not continue other chunks or convert the defect into a completion-time
+limitation.
 
 ## Out of scope
 
-- Passages of at most 12 sentences
+- Non-section passages of at most 12 sentences
 - Inventing missing physical meaning
 - Treating chunk boundaries as permission to redefine global objects locally
 - Resuming or reactivating a legacy/version-1 session

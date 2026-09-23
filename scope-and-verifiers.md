@@ -9,8 +9,9 @@ Section review exists to catch relationships that local chunks cannot see.
 - Do object scopes and factor conventions remain coherent across the section?
 - Are any scientific choices unresolved before prose is reorganized?
 
-Review may be self-only for a strong editor when routing permits. Economy mode
-uses a capable holistic reviewer.
+Low-risk direct chunks may be self-only. Reviewed chunks use the mandatory
+sentence and terminology-and-notation reviewers plus the triggered specialists
+defined by the micro skill.
 
 ## Stage E focus
 
@@ -21,12 +22,16 @@ uses a capable holistic reviewer.
 - Do chunk boundaries preserve cause, implication, and claim strength?
 - Are formal statements consistent across chunks?
 
-Run one holistic reviewer. Add one math reviewer only when the section contains
-changed formal content. Use the micro conflict adjudicator only for an actual
-incompatible scientific recommendation.
+Run one holistic reviewer. When relevant formal content is present, add one
+formal reviewer with an explicit scope: `changed`, `dependency_closure`, or
+`all_in_scope`; otherwise record `none`. Use `all_in_scope` for the affected
+unit under the high-risk profile. Use the micro conflict adjudicator only for
+an actual incompatible scientific recommendation.
 
-Record section-level quality axes, affected spans, reviewed snapshot, and actual
-model metadata. Stage E does not emit sentence results: exhaustive sentence
-coverage belongs to each Stage-D chunk and must already be current. Do not
-launch one worker per sentence. Rerun a clean chunk only when its snapshot or a
-dependency from the global ledger has changed.
+Record section-level quality axes, affected spans, reviewed snapshot, reviewed
+context revision and applicable object-ledger revision, formal-review scope,
+applicable canon revision, and actual model metadata. Stage E does not emit
+sentence results: declared sentence coverage belongs to each Stage-D chunk and
+must already be current.
+Do not launch one reviewer per sentence. Rerun a clean chunk when its snapshot or
+a recorded dependency from the global context or ledger has changed.

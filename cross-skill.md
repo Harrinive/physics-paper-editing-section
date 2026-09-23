@@ -4,10 +4,10 @@
 
 | Target | Skill |
 |---|---|
-| At most 12 sentences | `physics-paper-editing` |
-| Over 12 sentences or whole section | `physics-paper-editing-section` |
+| Non-section passage at most 12 sentences | `physics-paper-editing` |
+| Whole section of any length, or passage over 12 sentences | `physics-paper-editing-section` |
 
-Both skills use the same version-2 routing state, runtime roles, quality axes,
+Both skills use the same version-2 direct/reviewed state, runtime roles, quality axes,
 and physics-paper-principles canon.
 
 ## Inherited context
@@ -17,8 +17,10 @@ Every chunk receives:
 - `harness_version: 2`;
 - the current `round_id`, declared language coverage, and section/chunk snapshot
   identifiers;
+- the original-source identifier, current context revision, and applicable
+  object-ledger revision;
 - edit intent, model tier, tier source, user constraints, and the section's
-  user-confirmed reviewer model profile;
+  active role-to-model policy, whether standing or user-selected;
 - section physics spine;
 - global object ledger;
 - adjacent context and manuscript conventions;
@@ -45,15 +47,17 @@ orchestrator-versus-author split in version 2.
 3. Reject stale reviews whose snapshot does not match the live
    chunk or section. Detail: [automation.md](automation.md).
 4. Honor the recorded edit intent, tier, user constraints, and next action.
-5. At the first reply of a resumed conversation, ask for a fresh explicit model
-   choice. The saved profile or a standing project instruction may be shown as
-   the recommended option but does not replace the question. Reuse the answer
-   within the current conversation. An adapter-resolved capability tier alone
-   does not confirm a model choice.
+5. At the first reply of a resumed conversation, re-read current standing
+   instructions. If they supply a role-to-model policy, announce and use it without
+   asking for confirmation; it supersedes the saved profile. Otherwise ask for
+   a fresh choice. An adapter-resolved capability tier alone does not choose
+   models for the review roles.
 
 ## Completion mapping
 
 Chunk `completion: ready` maps to manifest status `ready`. `needs_fix` maps to
-`editing`; `needs_user` maps to `needs_user`. The section is ready only after
-Stage E passes its required axes and the declared language coverage is complete
-on current snapshots.
+`editing`; `needs_user` maps to `needs_user` and pauses the whole round when it
+represents a newly discovered source-level scientific defect. The section is
+ready only after Stage E passes its required axes and the declared language
+coverage is complete on the current candidate snapshot and dependency
+revisions.
