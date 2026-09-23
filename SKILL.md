@@ -1,15 +1,16 @@
 ---
 name: physics-paper-editing-section
 description: >-
-  Physics-first, capability-adaptive editing for whole LaTeX physics sections or
-  passages over 12 sentences. Builds a section physics spine and global object
-  ledger, edits argument-sized chunks through physics-paper-editing, and reviews
-  the assembled section without forcing every chunk through the same harness.
+  Physics-first, capability-adaptive editing for whole physics sections or
+  technical passages over 12 sentences in LaTeX, Markdown, or plain text.
+  Builds a section physics spine and global object ledger, edits argument-sized
+  chunks through physics-paper-editing, and reviews the assembled text.
 ---
 
 # Physics paper editing — section
 
-Use for a whole `\section{...}` or a passage over 12 typographic sentences. Use
+Use for a whole physics section, a technical note, or any physics passage over
+12 typographic sentences in LaTeX, Markdown, or plain text. Use
 **`physics-paper-editing`** directly for shorter passages. Canon is
 **`physics-paper-principles`**.
 
@@ -45,13 +46,18 @@ micro-agent ceremony. A strong section editor may author chunks directly. An
 economy editor uses the scaffolded micro path. Each chunk is routed separately
 by scientific risk.
 
+Every chunk must preserve the section's established terminology and notation.
+Chunk assembly may not introduce a new clipped label, mathematical alias, or
+duplicate name that was absent from the source and global context unless it is
+necessary, defined, and reconciled deliberately.
+
 ## Stages
 
 | Stage | Outcome |
 |---|---|
 | A | Version-2 round, edit intent, language coverage, model tier, section scope |
 | B | Section physics spine, global object ledger, structural plan |
-| C | Argument-sized chunks, each at most 12 sentences and LaTeX-safe |
+| C | Argument-sized chunks, each at most 12 sentences and source-format-safe |
 | D | Adaptive editing per chunk; global ledger updated deliberately |
 | E | One section-wide physics-story, object-consistency, and formal review |
 
@@ -76,6 +82,10 @@ from the existence of old chunk artifacts; ask when the requested coverage is
 ambiguous. Detail: the micro skill's
 [language-coverage.md](../physics-paper-editing/language-coverage.md).
 
+Coverage selects sentences, not principles. Every in-scope sentence receives
+all 15 sentence checks, and every sentence in newly drafted text counts as
+changed.
+
 ## Persistence
 
 Section work is normally resumable, so persist each version-2 round, its brief,
@@ -96,8 +106,16 @@ label without immediately explaining what it means for the author's text.
 A section is ready only when all chunks are integrated, every required result
 matches the current chunk and section snapshots, the declared language
 coverage is complete, no required quality axis is `FIX` or `USER_DECISION`, and
-Stage E passes global physics lead and object consistency. Verification
-independence is recorded separately from content quality.
+Stage E passes global physics lead, object consistency, and assembled-text
+terminology and notation. Verification independence is recorded separately
+from content quality.
+
+For a scoped section copyedit, inherit the micro skill's completion boundary:
+an untouched pre-existing violation outside the authorized change scope may be
+recorded as a limitation rather than repaired. Stage E must still check the
+assembled section, and every violation introduced, changed, or left unresolved
+inside the required coverage blocks completion. A section completed under this
+exception must not be described as fully compliant with the canon.
 
 ## Out of scope
 

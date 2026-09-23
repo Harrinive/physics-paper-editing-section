@@ -7,7 +7,7 @@
       source hashes, and is selected by `CURRENT`.
 - [ ] `section-brief.md` contains the global physics spine.
 - [ ] `object-ledger.md` covers every new or changed story-bearing object.
-- [ ] Chunks are argument-sized, at most 12 sentences, and LaTeX-safe.
+- [ ] Chunks are argument-sized, at most 12 sentences, and source-format-safe.
 - [ ] Every chunk inherited the current spine and ledger.
 - [ ] Every chunk result belongs to the current round and matches the live
       chunk snapshot.
@@ -19,7 +19,10 @@
 - [ ] No version-2 path launched one worker per sentence; exhaustive coverage
       used at most one language reviewer per chunk.
 - [ ] Any factor or normalization change passed factor round-trip, inline-substitution, and payoff tests.
-- [ ] Stage E reviewed global physics story and object consistency once.
+- [ ] Every in-scope sentence was checked against all 15 sentence principles;
+      coverage selected sentences, not principles.
+- [ ] Stage E reviewed global physics story, object consistency, and the
+      assembled terminology-and-notation delta once.
 - [ ] Required quality axes pass; no unresolved `FIX` or `USER_DECISION` remains.
 - [ ] Verification independence is stated accurately.
 - [ ] Each persisted review records the role and actual model metadata available
@@ -50,6 +53,11 @@
       matters at all, as a fresh editing pass based on the current text.
 - [ ] A likely direct edit still asks the model-choice question at conversation
       intake; later choosing the direct path does not retroactively skip it.
+- [ ] A direct edit checks the full applicable canon without manufacturing
+      worker or persistence artifacts.
+- [ ] A newly drafted passage treats every sentence as changed.
+- [ ] A one-off coined technical label or mathematical alias is replaced,
+      defined and justified, or removed before completion.
 
 The detailed micro semantic fixtures live in
 [semantic-fixtures.md](../physics-paper-editing/semantic-fixtures.md).

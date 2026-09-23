@@ -37,9 +37,11 @@ Before moving paragraphs or drafting prose:
    [physical-lead.md](../physics-paper-principles/physical-lead.md).
 3. Record every object's category, scope, units/scaling, included factors,
    normalization, first use, later payoff, and disposition.
-4. Identify missing links, duplicate objects, conflicting normalizations, and
-   unresolved scientific choices.
-5. Make structure-level moves only after the physics architecture is coherent.
+4. Identify the section's terminology and notation sources, including any
+   project vocabulary registry and established manuscript symbols.
+5. Identify missing links, duplicate objects, conflicting normalizations,
+   unnecessary synonyms or aliases, and unresolved scientific choices.
+6. Make structure-level moves only after the physics architecture is coherent.
 
 An unresolved essential meaning becomes `needs_user`; do not ask a reviewer to
 guess it.
@@ -48,8 +50,8 @@ guess it.
 
 1. Split at physical subclaims, derivation steps, or paragraph boundaries.
 2. Keep each chunk at most 12 typographic sentences.
-3. Do not split inside equations, citations, references, definitions, or a
-   definition's immediate interpretation.
+3. Preserve the source format. Do not split inside equations, citations,
+   references, definitions, or a definition's immediate interpretation.
 4. Assign each chunk its edit intent, initial risk, object-ledger dependencies,
    adjacent context, current snapshot identifier, and stable sentence IDs.
 5. Set every chunk's current-round quality and language results to pending.
@@ -65,14 +67,17 @@ For each pending chunk:
 3. A strong section editor may draft the chunk directly. An economy editor uses
    [scaffolded-mode.md](../physics-paper-editing/scaffolded-mode.md).
 4. Reconcile every new or changed object with the global ledger before writing.
-5. Persist chunk quality axes and update the ledger only for deliberate,
+5. Apply canon closure from the micro skill. Every changed or newly written
+   sentence receives all 15 sentence checks; every other applicable canon
+   principle is also mandatory.
+6. Persist chunk quality axes and update the ledger only for deliberate,
    section-wide choices.
-6. Apply the declared language coverage. Under exhaustive coverage, one editor
+7. Apply the declared language coverage. Under exhaustive coverage, one editor
    or one language reviewer checks all sentences in the chunk and records a
    verdict for each; never launch one worker per sentence.
-7. Accept results only for the live chunk snapshot. Any source change makes the
+8. Accept results only for the live chunk snapshot. Any source change makes the
    affected result stale and triggers the required recheck.
-8. Continue to another independent chunk when safe; do not wait on low-value
+9. Continue to another independent chunk when safe; do not wait on low-value
    ceremony.
 
 ## Stage E — Section integration
@@ -80,13 +85,16 @@ For each pending chunk:
 1. Read the assembled section as one argument.
 2. Check the global physics spine, object identity, scope, factor conventions,
    cross-chunk transitions, claim strength, and applicable formal logic.
-3. Run one section-wide holistic review. Add math review only when formal
+3. Compare the assembled text with the source, global context, and any project
+   vocabulary registry. Resolve every newly introduced technical term,
+   shortened name, abbreviation, or mathematical alias.
+4. Run one section-wide holistic review. Add math review only when formal
    content warrants it.
-4. Reopen only spans with a failed required axis; route those spans through the
+5. Reopen only spans with a failed required axis; route those spans through the
    micro skill.
-5. Recompute the assembled section hash and reject stale chunk or section
+6. Recompute the assembled section hash and reject stale chunk or section
    reviews.
-6. Mark the round ready only when all required axes pass, no review is running,
+7. Mark the round ready only when all required axes pass, no review is running,
    every chunk has a current-round result, and the declared language coverage
    is complete on the current source.
 

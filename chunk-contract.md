@@ -19,7 +19,7 @@ reviewer_model_profile: <user-confirmed section profile, when workers are used>
 section_physics_spine: <current spine>
 global_object_ledger: <current ledger>
 adjacent_context: <one to three sentences each side>
-tex_anchor: <stable source span>
+source_anchor: <stable source span>
 ```
 
 The micro editor may raise risk, flag an unresolved scientific choice, or

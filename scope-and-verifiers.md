@@ -16,6 +16,8 @@ uses a capable holistic reviewer.
 
 - Does the assembled section follow one physical argument?
 - Does each object keep the same category, scope, normalization, and factors?
+- Does the assembled section preserve established terminology and notation,
+  with every new technical term or symbol necessary and defined?
 - Do chunk boundaries preserve cause, implication, and claim strength?
 - Are formal statements consistent across chunks?
 
