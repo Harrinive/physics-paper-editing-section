@@ -42,7 +42,7 @@ may not introduce a competing normalization, factor convention, duplicate
 symbol, or altered scope without reconciling the global ledger.
 
 Chunking remains an attention and persistence mechanism. A strong section
-editor may author chunks directly; an economy editor uses the scaffold. Each
+editor may author chunks directly; an economy or unknown editor uses the scaffold. Each
 ordinary chunk uses the micro skill's `direct | reviewed` contract. A
 source-format-safe unit that cannot be split below 13 sentences remains one
 section-owned oversized chunk and uses the reviewed contract directly rather

@@ -77,8 +77,8 @@ For each pending chunk:
 2. Route ordinary chunks through the micro skill's `direct | reviewed` path.
    Apply the same reviewed contract directly to a section-owned oversized
    chunk.
-3. A strong section editor may draft the chunk directly. An economy editor uses
-   [scaffolded-mode.md](../physics-paper-editing/scaffolded-mode.md).
+3. A strong section editor may draft the chunk directly. An economy or unknown
+   editor uses [scaffolded-mode.md](../physics-paper-editing/scaffolded-mode.md).
 4. Reconcile every new or changed object with the global ledger before writing.
 5. Apply canon closure from the micro skill. Every changed or newly written
    sentence receives all 15 sentence checks; every other applicable canon
