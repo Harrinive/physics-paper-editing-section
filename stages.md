@@ -42,7 +42,16 @@ Before moving paragraphs or drafting prose:
    project vocabulary registry and established manuscript symbols.
 5. Identify missing links, duplicate objects, conflicting normalizations,
    unnecessary synonyms or aliases, and unresolved scientific choices.
-6. Make structure-level moves only after the physics architecture is coherent.
+6. Run the convention-merge check
+   ([physical-lead.md](../physics-paper-principles/physical-lead.md))
+   section-wide, not per chunk — chunk-level review sees only a local slice
+   of a symbol's usage count.
+7. If the section contains parallel bullets, paragraphs, derivations, or
+   subsections, pick one shared presentation template for them (parallel-unit
+   alignment in [narrative.md](../physics-paper-principles/narrative.md))
+   before chunking, so independently edited chunks don't drift apart for no
+   physical reason.
+8. Make structure-level moves only after the physics architecture is coherent.
 
 An unresolved essential meaning becomes `needs_user`; do not ask a reviewer to
 guess it.
