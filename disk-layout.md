@@ -13,6 +13,9 @@
         ├── section-brief.md
         ├── object-ledger.md
         ├── manifest.json
+        ├── completion-audit.md
+        ├── sentence-maps/
+        ├── packets/                 # reviewer packets, their metadata and report files
         ├── reviews/
         └── jobs/
             └── <job_id>/

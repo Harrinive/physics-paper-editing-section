@@ -3,10 +3,12 @@
 ## Stage A — Intake and session
 
 1. In the first reply, check for a standing project or conversation
-   role-to-model policy. If present, state its mapping and continue without
-   asking for confirmation. If absent, offer the recommended mapping,
-   parent-model inheritance, and a custom choice, then wait before substantive
-   editing. On resume, current standing instructions override stale saved
+   role-to-model policy. A project policy is the file `physics-edit-policy.json`
+   at the repository root (`scripts/check_edit_round.py policy show`). If present,
+   state its mapping and continue without asking for confirmation. If absent, the
+   skill supplies no default: ask which model and effort each reviewer role uses,
+   wait for the answer, and write it with `policy set`, once per project.
+   `init` refuses to create a round without the file. On resume, current standing instructions override stale saved
    profiles; chunks inherit the active mapping and do not ask again.
 2. Decide whether this is an explicit continuation of the active version-2
    round or a new round. A rerun, rewrite, fresh pass, or request to review the
