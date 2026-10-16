@@ -27,8 +27,12 @@
       (narrative.md, parallel-unit alignment).
 - [ ] Every in-scope sentence was checked against all 15 sentence principles;
       coverage selected sentences, not principles.
-- [ ] Stage E reviewed global physics story, object consistency, and the
-      assembled terminology-and-notation delta once.
+- [ ] Stage E ran as at most two rounds of independent blind reviewers (three per
+      role, then two), combined into clusters; every must cluster was applied or
+      waived with a reason, or deferred to the owner; no round 3.
+- [ ] Stage E findings were global (order, object identity, payoff, redundancy,
+      claim strength, formal logic); one-sentence wording items went back to the
+      chunk loop as `local` items.
 - [ ] All applicable required quality axes pass; any `N/A` has no object to
       inspect, and no unresolved `FIX` or `USER_DECISION` remains.
 - [ ] Verification independence is stated accurately.

@@ -31,6 +31,12 @@ SOURCE = r"""\section{Demo}
 """
 
 
+def last_packet(folder):
+    """Id of the packet issued last in a round folder."""
+    return sorted(p.stem for p in (folder / "packets").glob("p*.json")
+                  if not p.name.endswith(".report.json"))[-1]
+
+
 def write_policy(root):
     """Write a complete policy file, as `policy set` does after the owner answered."""
     roles = {"sentence_reviewer": "sonnet/high", "terminology_reviewer": "sonnet/medium",
@@ -55,6 +61,15 @@ class RoundCase(unittest.TestCase):
         self.src = self.root / "Manuscript" / "demo.tex"
         self.src.write_text(SOURCE)
         write_policy(self.root)
+        skills = self.root / "skills" / "physics-paper-editing"
+        skills.mkdir(parents=True)
+        self.prompts = skills / "review-prompts.md"
+        self.prompts.write_text(
+            "## Holistic reviewer\n\n```text\nReview the story.\n```\n\n"
+            "## Formal reviewer\n\n```text\nReview the logic under FORMAL_REVIEW_SCOPE.\n```\n\n"
+            "## Sentence reviewer\n\n```text\nReview the sentences.\n```\n\n"
+            "## Terminology-and-notation reviewer\n\n```text\nReview the names.\n```\n\n"
+            "## Principle specialist\n\n```text\nSweep PRINCIPLE_IDS.\n```\n")
         self.run_cli("init", "demo", "Manuscript/demo.tex")
         self.folder = next((self.root / ".physics-edit" / "demo" / "runs").iterdir())
         self.manifest = cer.load_json(self.folder / "manifest.json")
@@ -103,17 +118,33 @@ class RoundCase(unittest.TestCase):
                          "--snapshot", snap, "--model", "sonnet", "--effort", "medium", "--scope", "close",
                          "--axes", "terminology_notation=PASS", "--summary", "t"))
 
-    def review_section(self, blind=True):
-        """Record the holistic and formal reviews of the whole text."""
-        snap = self.prefix("section")
-        extra = ["--blind"] if blind else []
-        self.run_cli("record", str(self.folder), "--chunk", "section", "--role", "holistic_reviewer",
-                     "--snapshot", snap, "--model", "opus", "--effort", "high", *extra,
-                     "--axes", "scientific_fidelity=PASS,physics_lead=PASS,terminology_notation=PASS,prose=PASS",
-                     "--summary", "h")
-        self.run_cli("record", str(self.folder), "--chunk", "section", "--role", "formal_reviewer",
-                     "--snapshot", snap, "--model", "opus", "--effort", "high", *extra,
-                     "--formal-scope", "all_in_scope", "--axes", "formal_validity=PASS", "--summary", "f")
+    def stage_e_round(self, findings=None):
+        """Issue, answer and record all reviewers of the next Stage E round, then merge it.
+
+        ``findings`` maps ``("holistic", 1)`` (role, reviewer index) to a list of findings.
+        """
+        findings = findings or {}
+        rnd = cer.find_round(self.root, str(self.folder))
+        number = len(cer.stage_e_rounds(rnd)) + 1
+        for short, role in (("holistic", "holistic_reviewer"), ("formal", "formal_reviewer")):
+            for index in range(1, cer.STAGE_E_REVIEWERS[number] + 1):
+                code, out = self.run_cli("prompt", str(self.folder), "--role", short,
+                                         "--prompts", str(self.prompts))
+                assert code == 0, out
+                pid = last_packet(self.folder)
+                meta = cer.load_json(self.folder / "packets" / f"{pid}.json")
+                report = {"packet": pid, "summary": "r", "axes": {},
+                          "findings": findings.get((short, index), [])}
+                Path(meta["report_file"]).write_text(__import__("json").dumps(report))
+                code, out = self.run_cli("record", str(self.folder), "--packet", pid,
+                                         "--report", meta["report_file"], "--model", "opus",
+                                         "--effort", "high")
+                assert code == 0, out
+        return self.run_cli("stage-e", str(self.folder), "merge")
+
+    def review_section(self):
+        """Run Stage E round 1 without findings."""
+        return self.stage_e_round()
 
     def make_ready(self):
         """Bring the round to a state that the gate accepts."""
@@ -154,7 +185,7 @@ class TestGate(RoundCase):
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("c01", out)
-        self.assertIn("holistic", out)
+        self.assertIn("editor_closure", out)
 
     def test_comment_edit_keeps_reviews(self):
         """A changed source pointer is not a change of the reviewed text."""
@@ -243,12 +274,12 @@ class TestGate(RoundCase):
         self.assertEqual(self.check()[0], 0)
 
     def test_nonblind_review_fails_under_high_risk(self):
-        """High risk requires blind holistic and formal reviewers."""
-        self.fill_documents()
-        for chunk in self.manifest["chunks"]:
-            self.review_chunk(chunk["id"])
-        self.review_section(blind=False)
-        self.run_cli("snapshot", str(self.folder))
+        """High risk requires blind Stage E reviewers (packets are blind by construction)."""
+        self.make_ready()
+        path = next((self.folder / "reviews").glob("section-holistic_reviewer-*.json"))
+        rec = cer.load_json(path)
+        rec["blind"] = False
+        cer.save_json(path, rec)
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("blind", out)
@@ -352,7 +383,6 @@ class TestScopedReview(RoundCase):
         for chunk in self.manifest["chunks"]:
             code, out = self.scoped(chunk["id"])
             self.assertEqual(code, 0, out)
-        self.review_section()
         self.run_cli("snapshot", str(self.folder))
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -401,17 +431,6 @@ if __name__ == "__main__":
 class TestPackets(RoundCase):
     """prompt, record --packet, status, digest."""
 
-    def setUp(self):
-        """Add a minimal review-prompts.md and the registry."""
-        super().setUp()
-        skills = self.root / "skills" / "physics-paper-editing"
-        skills.mkdir(parents=True)
-        self.prompts = skills / "review-prompts.md"
-        self.prompts.write_text(
-            "## Sentence reviewer\n\n```text\nReview the sentences.\n```\n\n"
-            "## Terminology-and-notation reviewer\n\n```text\nReview the names.\n```\n\n"
-            "## Principle specialist\n\n```text\nSweep PRINCIPLE_IDS.\n```\n")
-
     def prompt(self, chunk, role, *extra):
         """Run `prompt`; return (code, output)."""
         return self.run_cli("prompt", str(self.folder), "--chunk", chunk, "--role", role,
@@ -424,7 +443,7 @@ class TestPackets(RoundCase):
 
     def next_id(self):
         """Id of the packet issued last."""
-        return f"p{len(list((self.folder / 'packets').glob('p*.json'))):03d}"
+        return last_packet(self.folder)
 
     def review(self, chunk, short, statuses=None, **fields):
         """Issue a packet, answer it, record it; return (exit code, output) of `record`."""
@@ -513,12 +532,10 @@ class TestPackets(RoundCase):
         self.assertIn("nothing is pending", out)
 
     def test_stage_e_waits_for_the_chunks(self):
-        """A section review is refused while a chunk has an open item."""
+        """A Stage E packet is refused while a chunk has an open item."""
         self.fill_documents()
-        snap = self.prefix("section")
-        code, out = self.run_cli("record", str(self.folder), "--chunk", "section",
-                                 "--role", "holistic_reviewer", "--snapshot", snap, "--model", "opus",
-                                 "--effort", "high", "--blind", "--axes", "prose=PASS")
+        code, out = self.run_cli("prompt", str(self.folder), "--role", "holistic",
+                                 "--prompts", str(self.prompts))
         self.assertEqual(code, 2)
         self.assertIn("settled text", out)
 
@@ -704,3 +721,118 @@ class TestRetention(RoundCase):
         self.set_status("ready")
         self.assertNotIn("EXPIRED", self.run_cli("gc")[1])
         self.assertIn("EXPIRED", self.run_cli("gc", "--ready-days", "0")[1])
+
+
+def finding(where, axis="prose", tier="style", repair="reword"):
+    """A Stage E finding."""
+    return {"where": where, "axis": axis, "tier": tier, "evidence": "e", "repair": repair}
+
+
+class TestStageE(RoundCase):
+    """At most two rounds of blind reviewers, combined by agreement and severity."""
+
+    scoped = TestScopedReview.scoped
+
+    def settle(self):
+        """Close every chunk so that Stage E can start."""
+        self.fill_documents()
+        for chunk in self.manifest["chunks"]:
+            self.review_chunk(chunk["id"])
+        self.run_cli("snapshot", str(self.folder))
+
+    def clusters(self, number=1):
+        """Clusters of a merged round."""
+        return cer.load_json(self.folder / "stage-e" / f"round-{number}.json")["clusters"]
+
+    def test_the_quota_of_reviewers_is_enforced(self):
+        """A fourth holistic reviewer in round 1 is refused."""
+        self.settle()
+        for _ in range(3):
+            self.assertEqual(self.run_cli("prompt", str(self.folder), "--role", "holistic",
+                                          "--prompts", str(self.prompts))[0], 0)
+        code, out = self.run_cli("prompt", str(self.folder), "--role", "holistic",
+                                 "--prompts", str(self.prompts))
+        self.assertEqual(code, 2)
+        self.assertIn("has its 3", out)
+
+    def test_merge_needs_every_reviewer(self):
+        """A round cannot be merged before its reviewers have reported."""
+        self.settle()
+        code, out = self.run_cli("stage-e", str(self.folder), "merge")
+        self.assertEqual(code, 2)
+        self.assertIn("needs 3 recorded", out)
+
+    def test_agreement_and_tier_decide_what_blocks(self):
+        """Two reviewers on one sentence, or one claim finding, must be ruled; a lone style note is listed."""
+        self.settle()
+        code, out = self.stage_e_round({
+            ("holistic", 1): [finding(["c01.S01"], "prose", "global"),
+                              finding(["c02.S01"], "prose", "style")],
+            ("holistic", 2): [finding(["c01.S01"], "prose", "style")],
+            ("formal", 1): [finding(["c01.S02"], "formal_validity", "claim")]})
+        self.assertEqual(code, 0, out)
+        by_where = {tuple(c["where"]): c for c in self.clusters()}
+        self.assertEqual(by_where[("c01.S01",)]["status"], "open")
+        self.assertEqual(by_where[("c01.S01",)]["agreement"], 2)
+        self.assertEqual(by_where[("c02.S01",)]["status"], "listed")
+        self.assertEqual(by_where[("c01.S02",)]["status"], "open")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("is not ruled", out)
+
+    def test_waived_clusters_make_the_round_ready_without_round_two(self):
+        """Waiving every must cluster is enough; nothing was repaired, so no second round."""
+        self.settle()
+        self.stage_e_round({("formal", 1): [finding(["c01.S02"], "formal_validity", "claim")]})
+        cid = self.clusters()[0]["id"]
+        self.assertEqual(self.run_cli("stage-e", str(self.folder), "rule", "--cluster", cid,
+                                      "--as", "waived")[0], 2)
+        self.assertEqual(self.run_cli("stage-e", str(self.folder), "rule", "--cluster", cid,
+                                      "--as", "waived", "--reason", "the premise is in Sec. II")[0], 0)
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_applied_needs_a_changed_sentence_and_a_second_round(self):
+        """Applied means the sentences changed; a repaired claim finding requires round 2, and no round 3."""
+        self.settle()
+        self.stage_e_round({("formal", 1): [finding(["c01.S02"], "formal_validity", "claim")]})
+        cid = self.clusters()[0]["id"]
+        self.run_cli("stage-e", str(self.folder), "rule", "--cluster", cid, "--as", "applied")
+        self.assertIn("sentences are unchanged", self.check()[1])
+        self.src.write_text(SOURCE.replace("where $a$ is the left side", "where $a$ is the left-hand side"))
+        chunk = self.manifest["chunks"][0]["id"]
+        self.assertEqual(self.scoped(chunk)[0], 0)
+        # the first sentence of the next chunk follows the edited sentence, so it is pending too
+        self.assertEqual(self.scoped(self.manifest["chunks"][1]["id"])[0], 0)
+        self.run_cli("snapshot", str(self.folder))
+        code, out = self.check()
+        self.assertIn("round 2 is required", out)
+        self.assertEqual(self.stage_e_round()[0], 0)
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        code, out = self.run_cli("prompt", str(self.folder), "--role", "holistic",
+                                 "--prompts", str(self.prompts))
+        self.assertEqual(code, 2)
+        self.assertIn("at most 2 rounds", out)
+
+    def test_a_deferred_cluster_waits_for_the_owner(self):
+        """Deferred is an owner decision; ruling it later clears it."""
+        self.settle()
+        self.stage_e_round({("holistic", 1): [dict(finding(["c02.S02"], "scientific_fidelity", "claim"),
+                                                    user_decision=True)]})
+        cid = self.clusters()[0]["id"]
+        self.assertEqual(self.clusters()[0]["status"], "deferred")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("deferred to the owner", out)
+        self.run_cli("stage-e", str(self.folder), "rule", "--cluster", cid, "--as", "waived",
+                     "--reason", "Owner, 2026-10-16: keep")
+        self.assertEqual(self.check()[0], 0)
+
+    def test_local_items_do_not_block(self):
+        """A one-sentence wording note is routed to the chunk loop, not counted as a finding."""
+        self.settle()
+        self.stage_e_round()
+        path = next((self.folder / "reviews").glob("section-holistic_reviewer-*.json"))
+        self.assertEqual(cer.load_json(path)["findings"], [])
+        self.assertEqual(self.check()[0], 0)

@@ -121,23 +121,45 @@ For each pending chunk:
 
 ## Stage E — Section integration
 
-1. Read the assembled section as one argument.
-2. Check the global physics spine, object identity, scope, factor conventions,
-   cross-chunk transitions, claim strength, and applicable formal logic.
-3. Compare the assembled text with the source, global context, and any project
-   vocabulary registry. Resolve every newly introduced technical term,
-   shortened name, abbreviation, or mathematical alias.
-4. Run one section-wide holistic review. When formal content requires review,
-   set an explicit `changed`, `dependency_closure`, or `all_in_scope` scope;
-   use `none` only when the edited unit contains no relevant formal statement.
-   High-risk section work uses `all_in_scope` for the affected unit.
-5. Reopen only spans with a failed required axis; route those spans through the
-   micro skill.
-6. Recompute the assembled section hash and reject chunk or section reviews
-   whose text, context, or ledger revision is stale.
-7. Mark the round ready only when all applicable required axes pass, no review is running,
-   every chunk has a current-round result, and the declared language coverage
-   is complete on the current candidate snapshot.
+Stage E sees what the chunk reviews cannot: the physics story and its order across
+the section, the identity and scope of every object, the payoff of each name,
+redundancy between distant passages, claim strength, agreement with the
+neighbouring sections, and formal logic. The wording of one sentence is covered
+by the chunk reviews; a reviewer reports such a defect as a `local` item, which
+is repaired in the chunk loop and does not count as a finding.
+
+Stage E has at most two rounds. A random reviewer always finds something, so a
+round is a bounded sample of independent reviewers, combined and adjudicated;
+the gate does not ask for a reviewer's PASS on the final text.
+
+1. **Precondition.** Every chunk is settled (`check` shows no line that begins
+   with a chunk id). `prompt --role holistic|formal` refuses otherwise.
+2. **Round 1.** Launch three independent, blind reviewers for the holistic role
+   and, when formal content is in scope, three for the formal role (the formal
+   scope of the session; `all_in_scope` under the high-risk profile). Each is a
+   new agent that receives only the packet launch line; none sees another's
+   findings or the editor's conclusions. Record each with `record --packet`.
+3. **Combine.** `stage-e merge` groups findings of the same axis whose sentences
+   overlap into clusters. A cluster must be ruled when one reviewer called it a
+   claim defect (a wrong or unsupported statement, a missing premise, a broken
+   definition), when two different reviewers raised it, or when a reviewer marked
+   it a `user_decision`. A global or style finding that only one reviewer raised
+   is listed for the owner and does not block.
+4. **Adjudicate.** The main agent rules each must cluster with `stage-e rule`:
+   `applied` (repair through the chunk loop; the gate accepts it only when the
+   cluster's sentences changed), `waived` with a reason (the text is right, or the
+   fix costs more than it gives), or `deferred` (an owner decision). When
+   reviewers propose incompatible repairs for one cluster, choose one or defer;
+   use the conflict adjudicator only for incompatible scientific recommendations.
+5. **Round 2.** Required when round 1 applied a claim or global cluster, because
+   the text changed materially. Two fresh reviewers per role, then merge and
+   adjudicate as above. There is no round 3: the must clusters of round 2 are
+   applied (and verified by the scoped chunk reviews), waived, or deferred, and
+   the rest goes into the report.
+6. **Ready.** No must cluster is open or deferred, every chunk is settled, the
+   snapshot equals the live text, and the declared language coverage is complete.
+   Sentences that changed after the last Stage E round have current chunk
+   verdicts; `check` reports how many there are.
 
 Stage E is not a repetition of every chunk's local checks. It targets global
 relationships that chunk review cannot see.

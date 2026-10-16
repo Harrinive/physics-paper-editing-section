@@ -116,7 +116,7 @@ changes no manuscript text. The project's role-to-model policy is the file
 so ask the owner when it is missing and write the answer with `policy set`.
 
 Commands: `policy`, `init`, `chunks`, `rechunk`, `pending`, `prompt`, `record`,
-`digest`, `waive`, `status`, `snapshot`, `defect`, `revision`, `gc`, `check`
+`digest`, `waive`, `stage-e`, `status`, `snapshot`, `defect`, `revision`, `gc`, `check`
 (`--help` lists the options). Run these at the moments below. **Must** means the
 program refuses the next step or `check` fails without it.
 
@@ -132,19 +132,21 @@ program refuses the next step or `check` fails without it.
 | 8 | A batch is recorded | `pending`, `digest` | should |
 | 9 | Nothing pending in a chunk | `prompt --scope close` for the sentence and the terminology reviewer, then repairs by rows 4 to 8 | must: `check` needs a close review per role |
 | 10 | After the last edit | `snapshot` | must (`check` fails until the snapshot equals the live text) |
-| 11 | Before Stage E | `check` shows no line that begins with a chunk id | must: `record --chunk section` refuses otherwise. Stage E is recorded by hand: `--chunk section --blind --formal-scope ...` |
-| 12 | An owner ruling, a Stage E repair, or a move between chunks | `defect rule` if a defect was logged; `pending` for the blast radius; `revision --yes` only if the spine, the ledger or the conventions that reviewers judge against changed | must for `defect rule`. A bump prints and discards every current verdict and rejects packets still out. An edit of the ledger, the brief or `reviewer-context.md` without a bump is only warned about when a packet is recorded |
-| 13 | Before every report to the owner | `check`; quote its last line; end with "Deviations from the skill:" | must |
-| 14 | At the end of a round, or when asked about disk use | `gc` | should. It lists rounds past retention and deletes nothing; `gc --compact` removes the bulk of expired rounds (raw reports, packets, sentence maps, snapshots) and only with the owner's agreement |
+| 11 | Before Stage E | `check` shows no line that begins with a chunk id | must: `prompt --role holistic\|formal` refuses otherwise |
+| 12 | A Stage E round (at most two) | `prompt --role holistic` and `--role formal` once per reviewer (3 per role in round 1, 2 in round 2; the program refuses more), each launched as a new agent that gets only the printed line; `record --packet` for each; `stage-e merge`; `stage-e rule --cluster K.. --as applied\|waived\|deferred --reason ...` | must. A cluster is must when one reviewer calls it a claim defect or two reviewers raise it; `applied` is accepted only when its sentences changed; round 2 is required when round 1 applied a claim or global cluster; there is no round 3; one-sentence wording items are `local` and go back to the chunk loop |
+| 13 | An owner ruling, a Stage E repair, or a move between chunks | `defect rule` if a defect was logged; `pending` for the blast radius; `revision --yes` only if the spine, the ledger or the conventions that reviewers judge against changed | must for `defect rule`. A bump prints and discards every current verdict and rejects packets still out. An edit of the ledger, the brief or `reviewer-context.md` without a bump is only warned about when a packet is recorded |
+| 14 | Before every report to the owner | `check`; quote its last line; end with "Deviations from the skill:" | must |
+| 15 | At the end of a round, or when asked about disk use | `gc` | should. It lists rounds past retention and deletes nothing; `gc --compact` removes the bulk of expired rounds (raw reports, packets, sentence maps, snapshots) and only with the owner's agreement |
 
 ## Completion
 
 A section is ready only when all chunks are integrated, every required result
 matches the current chunk and section snapshots, the declared language
-coverage is complete, no required quality axis is `FIX` or `USER_DECISION`, and
-Stage E passes global physics lead, object consistency, and assembled-text
-terminology and notation. Verification independence is recorded separately
-from content quality.
+coverage is complete, no required quality axis of a chunk is `FIX` or
+`USER_DECISION`, and Stage E is adjudicated: at most two rounds of independent
+blind reviewers, every must cluster applied or waived (none open, none deferred
+to the owner). Verification independence is recorded separately from content
+quality.
 
 If any reviewer discovers a scientific defect in the author's source that the
 requested task did not already authorize repairing, pause the entire section

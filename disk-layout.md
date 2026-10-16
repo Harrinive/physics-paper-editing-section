@@ -16,6 +16,7 @@
         ├── completion-audit.md
         ├── sentence-maps/
         ├── packets/                 # reviewer packets, their metadata and report files
+        ├── stage-e/                 # round-1.json, round-2.json: clusters and rulings
         ├── reviews/
         └── jobs/
             └── <job_id>/
