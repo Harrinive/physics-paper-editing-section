@@ -84,6 +84,13 @@
       contain every sentence.
 - [ ] A context or ledger revision invalidates dependent reviews even when the
       chunk text hash is unchanged.
+- [ ] A one-sentence repair re-reviewed only that sentence and its successor;
+      untouched sentences kept their verdicts.
+- [ ] Each chunk has one whole-chunk sentence review and one whole-chunk
+      terminology-and-notation review of its final text.
+- [ ] The sentence and terminology reviewers were given no source text.
+- [ ] A sentence flagged a third time was escalated as a decision, not
+      rewritten again.
 - [ ] Formal PASS records whether it covers changed statements, their dependency
       closure, or all in-scope formal content.
 - [ ] A whole section of at most 12 sentences still routes to this skill.

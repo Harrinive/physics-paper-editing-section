@@ -49,6 +49,7 @@ quality:
   prose: PASS | FIX | USER_DECISION | N/A
 completion: ready | needs_fix | needs_user
 language_review:
+  scope: full | touched          # touched: only the listed sentence IDs
   coverage: selective | exhaustive
   status: PASS | FIX | USER_DECISION
   checked_sentence_ids: <required for both modes>

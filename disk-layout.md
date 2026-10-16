@@ -76,8 +76,11 @@ must survive context loss.
 A review is usable only when its recorded candidate snapshot, context revision,
 and relevant object-ledger dependencies match the live state. Preserve
 mismatched reviews as stale evidence. A changed sentence invalidates its
-language verdict; a split, merge, reorder, or renumbering invalidates the
-affected sentence map. A context-revision or applicable object-ledger-revision
+language verdict and the verdict of the sentence after it (a verdict is keyed
+by the sentence together with its predecessor); a split, merge, reorder, or
+renumbering invalidates the affected sentence map. A verdict that belongs to
+an unchanged sentence with an unchanged predecessor remains current, also when
+the chunk is cut anew. A context-revision or applicable object-ledger-revision
 change invalidates every dependent review even when chunk text is unchanged.
 Never promote stale PASS state.
 
