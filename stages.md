@@ -93,8 +93,14 @@ For each pending chunk:
    sentence receives all 15 sentence checks; every other applicable canon
    principle is also mandatory.
 6. Under `reviewed`, run one whole-unit sentence reviewer and one
-   terminology-and-notation reviewer, then every principle specialist triggered
-   by the sentence hit map.
+   terminology-and-notation reviewer on the first draft of the chunk, then every
+   principle specialist triggered by the sentence hit map. Apply the accepted
+   findings in one batch and re-review only the touched sentences with their
+   neighbours as context
+   ([scoped-review.md](../physics-paper-editing/scoped-review.md)). When no
+   sentence is pending, run one whole-chunk sentence review and one whole-chunk
+   terminology-and-notation review of the final text (the close of the chunk).
+   The sentence and terminology reviewers receive no source text.
 7. Persist chunk quality axes, checked sentence IDs, principle hits, and the
    reviewed context revision and applicable object-ledger revision. Update the
    ledger only for deliberate,
@@ -102,9 +108,12 @@ For each pending chunk:
 8. Apply the declared language coverage. Record every checked sentence under
    either coverage mode; exhaustive coverage includes every sentence. Never
    launch one reviewer per sentence.
-9. Accept results only when the live chunk snapshot and all recorded context
-   revisions and applicable object-ledger revisions match. A text or dependency change makes the
-   affected result stale and triggers the required recheck.
+9. Accept a verdict only when the sentence and its predecessor are unchanged
+   and the recorded context revision and applicable object-ledger revision
+   match. A text change makes the verdict of the changed sentence and of the
+   sentence after it stale; a dependency change makes the affected results
+   stale. A stale verdict triggers a scoped recheck, not a whole-chunk one.
+   A sentence flagged a third time goes to the author as a decision.
 10. Continue to another independent chunk only while no source-level scientific
     defect is awaiting the author.
 
