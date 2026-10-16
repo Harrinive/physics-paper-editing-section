@@ -21,6 +21,10 @@
 - [ ] No version-2 path launched one reviewer per sentence; reviewed work used one
       whole-unit sentence reviewer and one terminology-and-notation reviewer per chunk.
 - [ ] Any factor or normalization change passed factor round-trip, inline-substitution, and payoff tests.
+- [ ] Stage B ran the section-wide convention-merge check (physical-lead.md).
+- [ ] Parallel bullets, paragraphs, derivations, or subsections share one
+      presentation template where nothing physical requires them to differ
+      (narrative.md, parallel-unit alignment).
 - [ ] Every in-scope sentence was checked against all 15 sentence principles;
       coverage selected sentences, not principles.
 - [ ] Stage E reviewed global physics story, object consistency, and the
@@ -44,6 +48,16 @@
 
 - [ ] A one-use reduced weight is absorbed into the physically relevant total.
 - [ ] A genuinely reused normalized function is retained.
+- [ ] A general symbol bridged back to established named quantities by a lone
+      translation sentence is flagged as a merged-convention seam and
+      consolidated onto the established convention.
+- [ ] A general symbol used by several independent later statements, not only
+      the one result it was introduced for, is retained rather than collapsed.
+- [ ] Three parallel subsections that differ in move order for no physical
+      reason are aligned to one shared template.
+- [ ] Two parallel subsections that differ because they cover genuinely
+      different physics keep that difference rather than being forced into
+      false uniformity.
 - [ ] A valid construction definition is not forced into an invented operational form.
 - [ ] A user prohibition on subagents is honored.
 - [ ] An unknown model takes economy routing without an invented identifier.

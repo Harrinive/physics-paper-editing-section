@@ -8,6 +8,12 @@ Section review exists to catch relationships that local chunks cannot see.
 - Are the physically native quantities identified before formal helpers?
 - Do object scopes and factor conventions remain coherent across the section?
 - Are any scientific choices unresolved before prose is reorganized?
+- Does any symbol or term survive only to bridge two notations for the same
+  object? Run the convention-merge check
+  ([physical-lead.md](../physics-paper-principles/physical-lead.md)).
+- Do parallel bullets, paragraphs, derivations, or subsections share one
+  presentation template where nothing physical requires them to differ?
+  (parallel-unit alignment, [narrative.md](../physics-paper-principles/narrative.md))
 
 Low-risk direct chunks may be self-only. Reviewed chunks use the mandatory
 sentence and terminology-and-notation reviewers plus the triggered specialists
@@ -21,6 +27,8 @@ defined by the micro skill.
   with every new technical term or symbol necessary and defined?
 - Do chunk boundaries preserve cause, implication, and claim strength?
 - Are formal statements consistent across chunks?
+- Do parallel units still share the template Stage B set, or did independent
+  chunk edits let them drift for no physical reason?
 
 Run one holistic reviewer. When relevant formal content is present, add one
 formal reviewer with an explicit scope: `changed`, `dependency_closure`, or
