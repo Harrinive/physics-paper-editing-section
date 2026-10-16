@@ -1157,11 +1157,8 @@ def cmd_record(args: argparse.Namespace) -> int:
         if not re.fullmatch(r"P(0[1-9]|1[0-5])", name) or value not in STATUSES:
             return fail(f"--hits needs Pxx=PASS|FIX|USER_DECISION, got {name}={value}")
     if args.chunk == "section":
-        current, ids = rnd.whole_hash(), []
-        unsettled = [f for f in evaluate(rnd)[0] if re.match(r"c\d+:", f)]
-        if unsettled:
-            return fail("Stage E reviews a settled text, but a chunk still has an open item: "
-                        + "; ".join(unsettled[:4]))
+        return fail("Stage E reviews are issued with `prompt --role holistic|formal` and recorded "
+                    "with `record --packet`; they are merged with `stage-e merge`")
     else:
         chunk = rnd.chunk(args.chunk)
         if chunk is None:
@@ -1317,12 +1314,22 @@ PROMPT_FILE_CANDIDATES = (
     "~/.claude/skills/physics-paper-editing/review-prompts.md",
 )
 ROLE_ALIASES = {"sentence": "sentence_reviewer", "terminology": "terminology_reviewer",
-                "specialist": "principle_specialist"}
-ROLE_HEADINGS = {"sentence_reviewer": "Sentence reviewer",
+                "specialist": "principle_specialist", "holistic": "holistic_reviewer",
+                "formal": "formal_reviewer"}
+#: Stage E: at most two rounds; independent blind reviewers per role and round.
+STAGE_E_REVIEWERS = {1: 3, 2: 2}
+STAGE_E_ROLES = ("holistic_reviewer", "formal_reviewer")
+FINDING_TIERS = ("claim", "global", "style")
+STAGE_E_AXES = ("scientific_fidelity", "physics_lead", "terminology_notation", "prose",
+                "formal_validity")
+ROLE_HEADINGS = {"holistic_reviewer": "Holistic reviewer", "formal_reviewer": "Formal reviewer",
+                 "sentence_reviewer": "Sentence reviewer",
                  "terminology_reviewer": "Terminology-and-notation reviewer",
                  "principle_specialist": "Principle specialist"}
 #: Canon files each packet role must read (names inside ``physics-paper-principles``).
-ROLE_CANON = {"sentence_reviewer": ("SKILL.md", "sentence.md"),
+ROLE_CANON = {"holistic_reviewer": ("SKILL.md", "narrative.md", "physical-lead.md", "math.md"),
+              "formal_reviewer": ("SKILL.md", "math.md", "physical-lead.md"),
+              "sentence_reviewer": ("SKILL.md", "sentence.md"),
               "terminology_reviewer": ("SKILL.md", "sentence.md", "physical-lead.md"),
               "principle_specialist": ("SKILL.md", "sentence.md")}
 SPECIALIST_EXTRA_CANON = {"P05": "narrative.md", "P13": "narrative.md", "P07": "narrative.md",
@@ -1490,8 +1497,7 @@ def issue_packet(rnd: Round, chunk: dict, role: str, scope: str, covered: list[s
     """
     folder = rnd.folder / "packets"
     folder.mkdir(exist_ok=True)
-    number = len(list(folder.glob("p*.json"))) + 1
-    pid = f"p{number:03d}"
+    pid = next_packet_id(folder)
     keys = chunk_keys(rnd.units, chunk)
     sentences = chunk_sentences(rnd.units, chunk)
     raw = [s for u in rnd.units[chunk["first_unit"] - 1:chunk["last_unit"]]
@@ -1574,6 +1580,24 @@ def cmd_prompt(args: argparse.Namespace) -> int:
     role = ROLE_ALIASES.get(args.role, args.role)
     if role not in ROLE_HEADINGS:
         return fail(f"role must be one of {sorted(ROLE_ALIASES)}")
+    if role in STAGE_E_ROLES:
+        try:
+            meta = issue_stage_e_packet(rnd, role, find_prompts(args.prompts))
+        except (FileNotFoundError, ValueError) as err:
+            return fail(str(err))
+        print(f"packet {meta['id']}: {role}, Stage E round {meta['stage_e_round']}, reviewer "
+              f"{meta['reviewer_index']} of {STAGE_E_REVIEWERS[meta['stage_e_round']]}, blind, "
+              f"whole text {meta['snapshot_sha256'][:10]}")
+        print(f"launch with model {meta['model']}, effort {meta['effort']} (a new, independent agent for "
+              "each reviewer; give it nothing but this line):")
+        print(f"  Read {meta['packet_file']} and carry out the instructions in it exactly. "
+              "That file is your full task.")
+        print("record afterwards with:")
+        print(f"  python3 {Path(__file__).resolve()} record {rnd.folder} --packet {meta['id']} "
+              f"--report {meta['report_file']} --model {meta['model']} --effort {meta['effort']}")
+        return 0
+    if not args.chunk:
+        return fail("--chunk is required for this role")
     chunk = rnd.chunk(args.chunk)
     if chunk is None:
         return fail(f"no chunk {args.chunk!r} in the manifest")
@@ -1766,13 +1790,19 @@ def record_from_packet(rnd: Round, args: argparse.Namespace) -> int:
         return fail(f"the report is not valid JSON: {err}")
     if report.get("packet") != meta["id"]:
         return fail(f"the report belongs to packet {report.get('packet')!r}, not {meta['id']!r}")
-    family, effort = rnd.role(role, meta["principles"])
+    family, effort = rnd.role(role, meta.get("principles", []))
     if family not in (args.model or "").lower() or args.effort != effort:
         return fail(f"role {role} must run on {family}/{effort}, got {args.model}/{args.effort}")
     if (meta["context_revision"], meta["ledger_revision"]) != (
             rnd.manifest["context_revision"], rnd.manifest["ledger_revision"]):
         return fail("the context or ledger revision changed after the packet was issued; "
                     "issue a new packet")
+    if meta.get("stage_e_round"):
+        if (meta["context_revision"], meta["ledger_revision"]) != (
+                rnd.manifest["context_revision"], rnd.manifest["ledger_revision"]):
+            return fail("the context or ledger revision changed after the packet was issued; "
+                        "issue a new packet")
+        return record_stage_e(rnd, args, meta, report)
     findings = report.get("findings", [])
     for f in findings:
         if f.get("sentence") not in meta["sentence_keys"]:
@@ -1839,6 +1869,428 @@ def record_from_packet(rnd: Round, args: argparse.Namespace) -> int:
     if meta.get("context_digest") and meta["context_digest"] != rnd.context_digest():
         print("warning: the section brief, the object ledger or the reviewer context changed after "
               "the packet was issued; bump the revision if the change matters")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Stage E: at most two rounds of independent blind reviewers, combined by agreement
+# ---------------------------------------------------------------------------
+
+STAGE_E_REPORT_SCHEMA = """\
+Write your report as one JSON file (UTF-8) at REPORT_PATH, and nowhere else.
+Do not edit the manuscript or any other file. Sentences are named CHUNK.SID,
+for example c11.S10.
+
+{
+  "packet": "PACKET_ID",
+  "axes": {"scientific_fidelity": "PASS | FIX | USER_DECISION", "...": "..."},
+  "findings": [
+    {"where": ["c11.S10", "c16.S02"],        // every sentence the finding concerns
+     "axis": "scientific_fidelity | physics_lead | terminology_notation | prose | formal_validity",
+     "tier": "claim | global | style",
+     "evidence": "one or two sentences", "repair": "exact proposed wording",
+     "user_decision": false}
+  ],
+  "local": [{"where": "c14.S05", "evidence": "wording of this one sentence"}],
+  "summary": "one line"
+}
+tier "claim": a wrong or unsupported statement, a missing premise, a broken definition.
+tier "global": order, redundancy, payoff, object identity or scope across chunks or
+sections. tier "style": a matter of taste. A defect in the wording of a single
+sentence, which the chunk reviews cover, goes under "local", not under "findings"."""
+
+
+def global_sentences(rnd: Round) -> list[tuple[str, str, str]]:
+    r"""Sentences of the whole text with global ids.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+
+    Returns
+    -------
+    list of tuple
+        ``("c11.S10", key, raw sentence)`` in reading order.
+    """
+    out = []
+    for chunk in rnd.manifest["chunks"]:
+        keys = chunk_keys(rnd.units, chunk)
+        raw = [x for u in rnd.units[chunk["first_unit"] - 1:chunk["last_unit"]]
+               for x in u.get("raw_sentences", [])]
+        for (sid, plain), text in zip(chunk_sentences(rnd.units, chunk), raw or [None] * 999):
+            out.append((f"{chunk['id']}.{sid}", keys[sid], text if text is not None else plain))
+    return out
+
+
+def stage_e_rounds(rnd: Round) -> dict[int, dict]:
+    r"""Merged Stage E rounds of a round.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+
+    Returns
+    -------
+    dict
+        ``{round number: round data}`` read from ``stage-e/round-N.json``.
+    """
+    out = {}
+    for path in sorted((rnd.folder / "stage-e").glob("round-*.json")):
+        out[int(re.search(r"round-(\d+)", path.name).group(1))] = load_json(path)
+    return out
+
+
+def stage_e_records(rnd: Round, number: int) -> list[dict]:
+    r"""Recorded Stage E reviews of one round at the current revisions.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+    number : int
+        Stage E round number.
+
+    Returns
+    -------
+    list of dict
+        Section records, oldest first.
+    """
+    man = rnd.manifest
+    return [r for r in rnd.reviews() if r.get("chunk_id") == "section"
+            and r.get("stage_e_round") == number
+            and r.get("context_revision") == man["context_revision"]
+            and r.get("ledger_revision") == man["ledger_revision"]]
+
+
+def stage_e_roles(rnd: Round) -> tuple[str, ...]:
+    r"""Roles that review in Stage E: the formal reviewer only when formal content is in scope.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+
+    Returns
+    -------
+    tuple of str
+        Role names.
+    """
+    return STAGE_E_ROLES if rnd.session.get("formal_review_scope") != "none" else STAGE_E_ROLES[:1]
+
+
+def next_packet_id(folder: Path) -> str:
+    r"""Next free packet id (``p001``, ``p002`` ...) in a ``packets`` folder.
+
+    Parameters
+    ----------
+    folder : Path
+        The ``packets`` folder (may not exist yet).
+
+    Returns
+    -------
+    str
+        One more than the highest id in use.
+    """
+    numbers = [int(m.group(1)) for p in folder.glob("p*.json")
+               if (m := re.match(r"p(\d+)\.json$", p.name))] if folder.exists() else []
+    return f"p{max(numbers, default=0) + 1:03d}"
+
+
+def issue_stage_e_packet(rnd: Round, role: str, prompts: Path) -> dict:
+    r"""Write a blind Stage E packet; refuse when the round is not ready for it.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+    role : str
+        ``holistic_reviewer`` or ``formal_reviewer``.
+    prompts : Path
+        ``review-prompts.md``.
+
+    Returns
+    -------
+    dict
+        Packet metadata.
+
+    Raises
+    ------
+    ValueError
+        If a chunk still has an open item, the round is complete, or the quota of
+        reviewers of this round is used up.
+    """
+    if role not in stage_e_roles(rnd):
+        raise ValueError("this round has no formal content in scope (formal_review_scope none)")
+    unsettled = [f for f in evaluate(rnd)[0] if re.match(r"c\d+:", f)]
+    if unsettled:
+        raise ValueError("Stage E reviews a settled text, but a chunk still has an open item: "
+                         + "; ".join(unsettled[:4]))
+    merged = stage_e_rounds(rnd)
+    number = max(merged, default=0) + 1
+    if number > max(STAGE_E_REVIEWERS):
+        raise ValueError(f"Stage E has at most {max(STAGE_E_REVIEWERS)} rounds; both are merged")
+    issued = [m for m in stage_e_issued(rnd) if m["stage_e_round"] == number and m["role"] == role]
+    if len(issued) >= STAGE_E_REVIEWERS[number]:
+        raise ValueError(f"round {number} has its {STAGE_E_REVIEWERS[number]} {role}s; "
+                         "record them and run `stage-e merge`")
+    folder = rnd.folder / "packets"
+    folder.mkdir(exist_ok=True)
+    pid = next_packet_id(folder)
+    sentences = global_sentences(rnd)
+    plain = "\n".join(checks_plain(t) for _, _, t in sentences)
+    skill_root = prompts.parent.parent / "physics-paper-principles"
+    canon = [str(skill_root / n) for n in dict.fromkeys(ROLE_CANON[role])]
+    scope = rnd.session.get("formal_review_scope", "all_in_scope")
+    prompt = role_prompt(prompts, role).replace("FORMAL_REVIEW_SCOPE", scope)
+    report = folder / f"{pid}.report.json"
+    ledger = (rnd.folder / "object-ledger.md").read_text()
+    context_file = rnd.folder / "reviewer-context.md"
+    lines = [f"# Stage E packet {pid}", "",
+             f"round {rnd.folder.name}; Stage E round {number}, reviewer {len(issued) + 1} of "
+             f"{STAGE_E_REVIEWERS[number]} ({role}); whole text sha256 {rnd.whole_hash()[:12]}; "
+             f"context {rnd.manifest['context_revision']}, ledger {rnd.manifest['ledger_revision']}",
+             "", "## Task", "", prompt, "",
+             "## Scope of Stage E", "",
+             "Stage E sees what the chunk reviews cannot: the physics story and its order across "
+             "the section, the identity and scope of every object, payoff of each name, redundancy "
+             "between distant bullets, claim strength, agreement with the neighbouring sections, and "
+             "formal logic. The sentence reviews of each chunk have passed the wording of every "
+             "single sentence; list a one-sentence wording defect under \"local\" and do not count "
+             "it as a finding. You are blind: you receive no earlier finding and no conclusion of "
+             "the editor.", "",
+             "## Canon (read before reviewing)", ""] + [f"- {c}" for c in canon] + [
+             "", "## Report", "", STAGE_E_REPORT_SCHEMA.replace("REPORT_PATH", str(report))
+             .replace("PACKET_ID", pid), "",
+             "## Source (the text before this pass)", "",
+             (rnd.folder / "source-original.txt").read_text(), "",
+             "## Candidate (the whole text; sentences are named CHUNK.SID)", ""]
+    lines += [f"[{gid}] {text}" for gid, _, text in sentences]
+    lines += ["", "## Section brief", "", (rnd.folder / "section-brief.md").read_text()]
+    if context_file.exists():
+        lines += ["", "## Reviewer context (rulings of the owner and conventions)", "",
+                  context_file.read_text()]
+    lines += ["", "## Object ledger", "", ledger, "",
+              "## Registry entries that occur in the text", "",
+              registry_entries(load_registry_terms(rnd.root), plain)]
+    path = folder / f"{pid}.md"
+    path.write_text("\n".join(lines) + "\n")
+    family, effort = rnd.role(role)
+    meta = {"id": pid, "role": role, "chunk_id": "section", "stage_e_round": number,
+            "reviewer_index": len(issued) + 1, "scope": "whole",
+            "snapshot_sha256": rnd.whole_hash(), "sentence_keys": {g: k for g, k, _ in sentences},
+            "context_revision": rnd.manifest["context_revision"],
+            "ledger_revision": rnd.manifest["ledger_revision"],
+            "formal_review_scope": scope if role == "formal_reviewer" else "",
+            "model": family, "effort": effort, "created_at": now(),
+            "context_digest": rnd.context_digest(),
+            "packet_file": str(path), "report_file": str(report)}
+    save_json(folder / f"{pid}.json", meta)
+    return meta
+
+
+def checks_plain(text: str) -> str:
+    r"""Prose of a raw sentence for matching registry names (alias of :func:`plain_text`).
+
+    Parameters
+    ----------
+    text : str
+        Raw sentence.
+
+    Returns
+    -------
+    str
+        The prose without math and references.
+    """
+    return plain_text(text)
+
+
+def stage_e_issued(rnd: Round) -> list[dict]:
+    r"""Metadata of every Stage E packet issued in this round.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+
+    Returns
+    -------
+    list of dict
+        Packet metadata with a ``stage_e_round``.
+    """
+    folder = rnd.folder / "packets"
+    if not folder.exists():
+        return []
+    metas = [load_json(p) for p in sorted(folder.glob("p*.json")) if not p.name.endswith(".report.json")]
+    return [m for m in metas if m.get("stage_e_round")]
+
+
+def record_stage_e(rnd: Round, args: argparse.Namespace, meta: dict, report: dict) -> int:
+    r"""Write the record of one Stage E review from its packet and report.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+    args : argparse.Namespace
+        Arguments of ``record``.
+    meta : dict
+        Packet metadata.
+    report : dict
+        The reviewer's parsed JSON report.
+
+    Returns
+    -------
+    int
+        Exit code.
+    """
+    findings = report.get("findings", [])
+    for f in findings:
+        where = f.get("where") or []
+        unknown = [w for w in where if w not in meta["sentence_keys"]]
+        if not where or unknown:
+            return fail(f"finding with unknown or empty 'where': {unknown or where}")
+        if f.get("axis") not in STAGE_E_AXES or f.get("tier") not in FINDING_TIERS:
+            return fail(f"finding needs axis in {STAGE_E_AXES} and tier in {FINDING_TIERS}")
+    axes = report.get("axes", {})
+    bad = {k: v for k, v in axes.items() if k not in STAGE_E_AXES or v not in STATUSES}
+    if bad:
+        return fail(f"bad axes {bad}")
+    rec = {"harness_version": HARNESS_VERSION, "round_id": rnd.folder.name,
+           "chunk_id": "section", "role": meta["role"], "packet": meta["id"],
+           "stage_e_round": meta["stage_e_round"], "reviewer_index": meta["reviewer_index"],
+           "snapshot_sha256": meta["snapshot_sha256"], "context_revision": meta["context_revision"],
+           "ledger_revision": meta["ledger_revision"], "canon": list(CANON),
+           "created_at": now(), "summary": report.get("summary", ""),
+           "verification_independence": rnd.session.get("verification_independence", ""),
+           "blind": True, "user_decisions": [], "requested_model": args.model,
+           "requested_effort": args.effort, "resolved_model": args.resolved_model or "unknown",
+           "quality": axes, "findings": findings, "local": report.get("local", []),
+           "sentence_keys": meta["sentence_keys"],
+           "formal_review_scope": meta.get("formal_review_scope", "")}
+    folder = rnd.folder / "reviews"
+    folder.mkdir(exist_ok=True)
+    stem = f"section-{meta['role']}-{meta['id']}"
+    (folder / "raw").mkdir(exist_ok=True)
+    shutil.copy(args.report, folder / "raw" / f"{stem}.json")
+    rec["report"] = f"raw/{stem}.json"
+    save_json(folder / f"{stem}.json", rec)
+    print(f"recorded {stem}.json (Stage E round {meta['stage_e_round']}, reviewer {meta['reviewer_index']})")
+    return 0
+
+
+def cmd_stage_e(args: argparse.Namespace) -> int:
+    r"""Merge a Stage E round, rule on its clusters, or show them.
+
+    ``merge`` needs the full quota of reviewers of the round.  Findings of the same
+    axis whose sentences overlap form a cluster.  A cluster must be repaired or
+    waived when one reviewer called it a claim defect, or when two reviewers
+    (different packets) raised it; a single reviewer's global or style finding is
+    listed for the owner and does not block.  ``rule`` records the editor's
+    decision for one cluster: applied (the sentences changed and passed the
+    chunk reviews), waived (with a reason), or deferred (an owner decision).
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Arguments of the ``stage-e`` sub-command.
+
+    Returns
+    -------
+    int
+        Exit code.
+    """
+    rnd = find_round(root_of(args), args.round)
+    folder = rnd.folder / "stage-e"
+    merged = stage_e_rounds(rnd)
+    if args.action == "show":
+        for number, data in merged.items():
+            print(f"round {number}: {len(data['clusters'])} clusters, {len(data['local'])} local items")
+            for c in data["clusters"]:
+                print(f"  {c['id']} {c['status']:9} {c['axis']:21} tier {c['tier']:6} "
+                      f"agreement {c['agreement']}  {', '.join(c['where'])}")
+        return 0
+    if args.action == "merge":
+        number = max(merged, default=0) + 1
+        if number > max(STAGE_E_REVIEWERS):
+            return fail("both Stage E rounds are merged")
+        records = stage_e_records(rnd, number)
+        for role in stage_e_roles(rnd):
+            have = [r for r in records if r["role"] == role]
+            if len(have) < STAGE_E_REVIEWERS[number]:
+                return fail(f"round {number} needs {STAGE_E_REVIEWERS[number]} recorded {role}s, "
+                            f"has {len(have)}")
+        items = []
+        for rec in records:
+            for f in rec["findings"]:
+                items.append({"packet": rec["packet"], "role": rec["role"], "axis": f["axis"],
+                              "tier": f["tier"], "where": f["where"],
+                              "keys": {rec["sentence_keys"][w] for w in f["where"]},
+                              "evidence": f.get("evidence", ""), "repair": f.get("repair", ""),
+                              "user_decision": bool(f.get("user_decision"))})
+        parent = list(range(len(items)))
+
+        def find(i: int) -> int:
+            """Union-find root."""
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return i
+
+        for i in range(len(items)):
+            for j in range(i):
+                if items[i]["axis"] == items[j]["axis"] and items[i]["keys"] & items[j]["keys"]:
+                    parent[find(i)] = find(j)
+        groups: dict[int, list[dict]] = {}
+        for i, item in enumerate(items):
+            groups.setdefault(find(i), []).append(item)
+        order = {t: i for i, t in enumerate(FINDING_TIERS)}
+        clusters = []
+        for n, group in enumerate(sorted(groups.values(), key=lambda g: min(
+                order[x["tier"]] for x in g)), 1):
+            tier = min((x["tier"] for x in group), key=lambda t: order[t])
+            agreement = len({x["packet"] for x in group})
+            must = tier == "claim" or agreement >= 2 or any(x["user_decision"] for x in group)
+            deferred = any(x["user_decision"] for x in group)
+            clusters.append({
+                "id": f"K{number}{n:02d}", "axis": group[0]["axis"], "tier": tier,
+                "agreement": agreement, "must": must,
+                "status": "deferred" if deferred else ("open" if must else "listed"),
+                "where": sorted({w for x in group for w in x["where"]}),
+                "keys": sorted({k for x in group for k in x["keys"]}),
+                "findings": [{k: x[k] for k in ("packet", "role", "tier", "evidence", "repair")}
+                             for x in group], "ruling": ""})
+        local = [dict(w, packet=r["packet"]) for r in records for w in r.get("local", [])]
+        folder.mkdir(exist_ok=True)
+        save_json(folder / f"round-{number}.json", {
+            "round": number, "created_at": now(), "snapshot_sha256": rnd.whole_hash(),
+            "text_keys": sorted({k for _, k, _ in global_sentences(rnd)}),
+            "context_revision": rnd.manifest["context_revision"],
+            "ledger_revision": rnd.manifest["ledger_revision"],
+            "clusters": clusters, "local": local})
+        print(f"Stage E round {number} merged: {len(clusters)} clusters, "
+              f"{sum(c['must'] for c in clusters)} must be ruled, {len(local)} local items "
+              "(repair those in the chunk loop)")
+        for c in clusters:
+            print(f"  {c['id']} {c['status']:9} {c['axis']:21} tier {c['tier']:6} "
+                  f"agreement {c['agreement']}  {', '.join(c['where'])}")
+        return 0
+    # rule
+    if not args.cluster or not args.decision:
+        return fail("rule needs --cluster and --as applied|waived|deferred")
+    number = int(re.match(r"K(\d)", args.cluster).group(1)) if re.match(r"K\d", args.cluster) else 0
+    if number not in merged:
+        return fail(f"no merged round for cluster {args.cluster!r}")
+    data = merged[number]
+    hit = [c for c in data["clusters"] if c["id"] == args.cluster]
+    if not hit:
+        return fail(f"no cluster {args.cluster!r}")
+    if args.decision in ("waived", "deferred") and not (args.reason or "").strip():
+        return fail("a waived or deferred cluster needs --reason")
+    hit[0].update({"status": args.decision, "ruling": args.reason or ""})
+    save_json(folder / f"round-{number}.json", data)
+    print(f"{args.cluster}: {args.decision}")
     return 0
 
 
@@ -2337,39 +2789,53 @@ def evaluate(rnd: Round) -> tuple[list[str], list[str], list[str]]:
                     fixes.append(f"{cid}: principle {principle} was hit ({rec['_file']}) "
                                  f"but no specialist ran afterwards")
 
-    # -- section-wide review (Stage E) -------------------------------------
-    sec = [r for r in records if r.get("chunk_id") == "section"
-           and r.get("snapshot_sha256") == whole
-           and r.get("context_revision") == manifest["context_revision"]
-           and r.get("ledger_revision") == manifest["ledger_revision"]]
-    holistic = [r for r in sec if r["role"] == "holistic_reviewer"]
-    formal = [r for r in sec if r["role"] == "formal_reviewer"]
-    if not holistic:
-        fixes.append("section: no holistic review of the current whole text (Stage E)")
-    else:
-        q = holistic[-1]["quality"]
-        for axis in ("scientific_fidelity", "terminology_notation", "prose"):
-            if q.get(axis) != "PASS":
-                fixes.append(f"section: holistic axis {axis} is {q.get(axis)!r}")
-        if q.get("physics_lead") not in ("PASS", "N/A"):
-            fixes.append(f"section: holistic axis physics_lead is {q.get('physics_lead')!r}")
-    if scope != "none":
-        if not formal:
-            fixes.append("section: no formal review of the current whole text")
-        else:
-            rec = formal[-1]
-            if rec["quality"].get("formal_validity") != "PASS":
-                fixes.append(f"section: formal_validity is {rec['quality'].get('formal_validity')!r}")
-            if rec.get("formal_review_scope") != scope:
-                fixes.append(f"section: formal review ran with scope {rec.get('formal_review_scope')!r}, "
-                             f"session requires {scope!r}")
-    if profile == "high_risk":
-        for rec in holistic[-1:] + formal[-1:]:
-            if not rec.get("blind"):
-                fixes.append(f"section: {rec['role']} was not blind (high_risk requires it)")
-    for rec in sec:
-        if "USER_DECISION" in json.dumps(rec.get("quality", {})):
-            decisions.append(f"section: USER_DECISION in {rec['_file']}")
+    # -- Stage E: at most two rounds of blind reviewers, combined and adjudicated ---------
+    merged = stage_e_rounds(rnd)
+    roles = stage_e_roles(rnd)
+    if not merged:
+        fixes.append("section: no Stage E round has been merged (`prompt --role holistic|formal`, "
+                     "`record --packet`, `stage-e merge`)")
+    for number, data in merged.items():
+        if (data["context_revision"], data["ledger_revision"]) != (
+                manifest["context_revision"], manifest["ledger_revision"]):
+            fixes.append(f"section: Stage E round {number} predates the current revision")
+        records_n = stage_e_records(rnd, number)
+        for role in roles:
+            have = [r for r in records_n if r["role"] == role]
+            if len(have) < STAGE_E_REVIEWERS[number]:
+                fixes.append(f"section: Stage E round {number} has {len(have)} {role}s, "
+                             f"needs {STAGE_E_REVIEWERS[number]}")
+            if scope != "none" and role == "formal_reviewer":
+                bad = [r["_file"] for r in have if r.get("formal_review_scope") != scope]
+                if bad:
+                    fixes.append(f"section: formal review of round {number} ran with another scope "
+                                 f"than the session's {scope!r}")
+        if profile == "high_risk":
+            for rec in records_n:
+                if not rec.get("blind"):
+                    fixes.append(f"section: {rec['_file']} was not blind (high_risk requires it)")
+        live_keys = {k for _, k, _ in global_sentences(rnd)}
+        for c in data["clusters"]:
+            if c["status"] == "open":
+                fixes.append(f"section: Stage E cluster {c['id']} ({c['axis']}, "
+                             f"{', '.join(c['where'][:3])}) is not ruled")
+            elif c["status"] == "deferred":
+                decisions.append(f"Stage E cluster {c['id']} is deferred to the owner: "
+                                 f"{c['ruling'][:70]}")
+            elif c["status"] == "applied" and not (set(c["keys"]) - live_keys):
+                fixes.append(f"section: Stage E cluster {c['id']} is ruled applied, but its "
+                             "sentences are unchanged")
+    if merged:
+        first = merged[min(merged)]
+        needs_second = any(c["status"] == "applied" and c["tier"] in ("claim", "global")
+                           for c in first["clusters"])
+        if needs_second and max(STAGE_E_REVIEWERS) not in merged:
+            fixes.append("section: round 1 repaired claim or global findings; Stage E round 2 is required")
+        changed = len({k for _, k, _ in global_sentences(rnd)}
+                      - set(merged[max(merged)].get("text_keys", [])))
+        if changed:
+            notes.append(f"{changed} sentences differ from the text of the last Stage E round "
+                         "(their chunk verdicts are current)")
 
     # -- source defects (unattended rule) -----------------------------------
     for defect in manifest.get("source_defects", []):
@@ -2447,6 +2913,14 @@ def build_parser() -> argparse.ArgumentParser:
                        help=f"{role}, for example sonnet/high")
     p.set_defaults(func=cmd_policy)
 
+    p = sub.add_parser("stage-e", help="merge a Stage E round, rule on its clusters, or show them")
+    p.add_argument("round")
+    p.add_argument("action", choices=["merge", "rule", "show"])
+    p.add_argument("--cluster", help="K101 ...")
+    p.add_argument("--as", dest="decision", choices=["applied", "waived", "deferred"])
+    p.add_argument("--reason")
+    p.set_defaults(func=cmd_stage_e)
+
     p = sub.add_parser("waive", help="record that a flagged sentence is right as written")
     p.add_argument("round")
     p.add_argument("--chunk", required=True)
@@ -2475,8 +2949,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("prompt", help="build a reviewer packet and print the launch line")
     p.add_argument("round")
-    p.add_argument("--chunk", required=True)
-    p.add_argument("--role", required=True, help="sentence | terminology | specialist")
+    p.add_argument("--chunk", help="chunk id (not needed for Stage E roles)")
+    p.add_argument("--role", required=True,
+                   help="sentence | terminology | specialist | holistic | formal (Stage E)")
     p.add_argument("--scope", choices=["full", "touched", "close"],
                    help="default: full for the first review, touched while sentences are "
                         "pending, close when nothing is pending")

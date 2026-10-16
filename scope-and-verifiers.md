@@ -30,16 +30,18 @@ defined by the micro skill.
 - Do parallel units still share the template Stage B set, or did independent
   chunk edits let them drift for no physical reason?
 
-Run one holistic reviewer. When relevant formal content is present, add one
-formal reviewer with an explicit scope: `changed`, `dependency_closure`, or
-`all_in_scope`; otherwise record `none`. Use `all_in_scope` for the affected
-unit under the high-risk profile. Use the micro conflict adjudicator only for
-an actual incompatible scientific recommendation.
+Run Stage E as at most two rounds of independent blind reviewers (three per
+role in round 1, two in round 2), combined by agreement and severity and
+adjudicated, as in [stages.md](stages.md). When relevant formal content is
+present, the formal reviewers run with an explicit scope: `changed`,
+`dependency_closure`, or `all_in_scope`; otherwise record `none`. Use
+`all_in_scope` for the affected unit under the high-risk profile. Use the micro
+conflict adjudicator only for an actual incompatible scientific recommendation.
 
-Record section-level quality axes, affected spans, reviewed snapshot, reviewed
-context revision and applicable object-ledger revision, formal-review scope,
-applicable canon revision, and actual model metadata. Stage E does not emit
-sentence results: declared sentence coverage belongs to each Stage-D chunk and
-must already be current.
+Record, for each reviewer, its axis statuses, findings with tier and affected
+sentences, local items, reviewed snapshot, reviewed context revision and
+applicable object-ledger revision, formal-review scope, and actual model
+metadata. Stage E does not emit sentence results: declared sentence coverage
+belongs to each Stage-D chunk and must already be current.
 Do not launch one reviewer per sentence. Rerun a clean chunk when its snapshot or
 a recorded dependency from the global context or ledger has changed.
