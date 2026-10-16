@@ -91,6 +91,18 @@ Never promote stale PASS state.
 and manuscript conventions. It excludes the object ledger, whose applicable
 revision is stored separately.
 
+## Retention
+
+Every record, the session (`created_at`) and the round folder carry time stamps.
+A round expires a number of days after its last record: 7 for `superseded` or
+`closed`, 30 for `ready`. A round that is `active` or `needs_user` never expires and
+is reported stale after 14 days without a record. `gc` lists the rounds with their
+state and size and deletes nothing; `gc --compact` removes the bulk of expired
+rounds (`reviews/raw`, `reviews/incoming`, `packets`, `sentence-maps`, `jobs`,
+`candidate-snapshot.txt`) and writes a `COMPACTED` marker. The logbook
+(`reviews/*.json`), `manifest.json`, `session.md`, `completion-audit.md`, the brief,
+the ledger and `source-original.txt` stay.
+
 ## Legacy boundary
 
 Any session without `harness_version: 2` is closed historical evidence. Do not

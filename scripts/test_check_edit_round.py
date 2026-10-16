@@ -655,3 +655,52 @@ class TestPolicy(unittest.TestCase):
         """List environments other than `keypoints` give one unit per item."""
         text = "\\begin{itemize}\n\\item First claim is here.\n\\item Second claim is here.\n\\end{itemize}\n"
         self.assertEqual(len(cer.split_units(text.splitlines())), 2)
+
+
+class TestRetention(RoundCase):
+    """`gc` lists, and compacts only on request."""
+
+    def set_status(self, status):
+        """Write a round status into session.md."""
+        path = self.folder / "session.md"
+        path.write_text(re.sub(r"(?m)^round_status:.*$", f"round_status: {status}", path.read_text()))
+
+    def test_active_round_never_expires(self):
+        """An active round is kept (or reported stale), never expired."""
+        code, out = self.run_cli("gc", "--stale-days", "999")
+        self.assertEqual(code, 0)
+        self.assertIn("keep", out)
+        self.assertNotIn("EXPIRED", out)
+
+    def test_closed_round_expires_and_listing_deletes_nothing(self):
+        """A closed round past its retention is listed, and `gc` alone removes nothing."""
+        self.set_status("closed")
+        (self.folder / "reviews" / "raw").mkdir()
+        (self.folder / "reviews" / "raw" / "x.md").write_text("raw report")
+        code, out = self.run_cli("gc", "--closed-days", "0")
+        self.assertIn("EXPIRED", out)
+        self.assertTrue((self.folder / "reviews" / "raw" / "x.md").exists())
+
+    def test_compact_removes_the_bulk_and_keeps_the_logbook(self):
+        """`gc --compact` drops raw reports and sentence maps, keeps manifest and records."""
+        self.set_status("closed")
+        self.run_cli("chunks", str(self.folder))
+        (self.folder / "reviews" / "raw").mkdir()
+        (self.folder / "reviews" / "raw" / "x.md").write_text("raw report")
+        self.run_cli("record", str(self.folder), "--chunk", self.manifest["chunks"][0]["id"],
+                     "--role", "editor_closure", "--snapshot", self.prefix(self.manifest["chunks"][0]["id"]),
+                     "--summary", "c")
+        code, out = self.run_cli("gc", "--closed-days", "0", "--compact")
+        self.assertEqual(code, 0, out)
+        self.assertFalse((self.folder / "reviews" / "raw").exists())
+        self.assertFalse((self.folder / "sentence-maps").exists())
+        self.assertTrue((self.folder / "manifest.json").exists())
+        self.assertTrue(list((self.folder / "reviews").glob("*.json")))
+        self.assertTrue((self.folder / "COMPACTED").exists())
+        self.assertIn("compacted", self.run_cli("gc", "--closed-days", "0")[1])
+
+    def test_ready_round_waits_longer(self):
+        """A ready round is expired only after the longer retention."""
+        self.set_status("ready")
+        self.assertNotIn("EXPIRED", self.run_cli("gc")[1])
+        self.assertIn("EXPIRED", self.run_cli("gc", "--ready-days", "0")[1])

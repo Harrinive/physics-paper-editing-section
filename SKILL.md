@@ -116,7 +116,7 @@ changes no manuscript text. The project's role-to-model policy is the file
 so ask the owner when it is missing and write the answer with `policy set`.
 
 Commands: `policy`, `init`, `chunks`, `rechunk`, `pending`, `prompt`, `record`,
-`digest`, `waive`, `status`, `snapshot`, `defect`, `revision`, `check`
+`digest`, `waive`, `status`, `snapshot`, `defect`, `revision`, `gc`, `check`
 (`--help` lists the options). Run these at the moments below. **Must** means the
 program refuses the next step or `check` fails without it.
 
@@ -135,6 +135,7 @@ program refuses the next step or `check` fails without it.
 | 11 | Before Stage E | `check` shows no line that begins with a chunk id | must: `record --chunk section` refuses otherwise. Stage E is recorded by hand: `--chunk section --blind --formal-scope ...` |
 | 12 | An owner ruling, a Stage E repair, or a move between chunks | `defect rule` if a defect was logged; `pending` for the blast radius; `revision --yes` only if the spine, the ledger or the conventions that reviewers judge against changed | must for `defect rule`. A bump prints and discards every current verdict and rejects packets still out. An edit of the ledger, the brief or `reviewer-context.md` without a bump is only warned about when a packet is recorded |
 | 13 | Before every report to the owner | `check`; quote its last line; end with "Deviations from the skill:" | must |
+| 14 | At the end of a round, or when asked about disk use | `gc` | should. It lists rounds past retention and deletes nothing; `gc --compact` removes the bulk of expired rounds (raw reports, packets, sentence maps, snapshots) and only with the owner's agreement |
 
 ## Completion
 

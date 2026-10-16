@@ -34,6 +34,7 @@ Sub-commands
 ``defect``    log or rule a defect of the author's source.
 ``revision``  bump the context or object-ledger revision (makes reviews stale).
 ``snapshot``  copy the live source to ``candidate-snapshot.txt``.
+``gc``        list rounds past their retention; ``--compact`` drops the bulk of expired ones.
 ``check``     validate the round; exit 0 only when ``ready`` is allowed.
 
 Scoped review
@@ -847,6 +848,7 @@ SESSION_TEMPLATE = """# Session: {slug}, round {round_id}
 harness_version: 2
 round_id: {round_id}
 round_status: active
+created_at: {created}
 source_file: {source_file}
 language_coverage: {language_coverage}
 edit_intent: {edit_intent}
@@ -979,7 +981,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     shutil.copy(source, folder / "candidate-snapshot.txt")
     (root / ".physics-edit" / args.slug / "CURRENT").write_text(f"runs/{round_id}\n")
     (folder / "session.md").write_text(SESSION_TEMPLATE.format(
-        slug=args.slug, round_id=round_id, source_file=rel,
+        slug=args.slug, round_id=round_id, source_file=rel, created=now(),
         language_coverage=args.coverage, edit_intent=args.intent,
         risk=args.risk, profile="high_risk" if args.risk == "high" else "standard",
         scope="all_in_scope" if args.risk == "high" else "dependency_closure"))
@@ -1930,6 +1932,109 @@ def cmd_waive(args: argparse.Namespace) -> int:
     return 0
 
 
+#: Files and folders of a round that ``gc --compact`` removes: raw reports, packets,
+#: sentence maps and snapshots are bulk; the logbook (``reviews/*.json``), the
+#: manifest, the session and the audit stay.
+COMPACT_TARGETS = ("packets", "sentence-maps", "jobs", "candidate-snapshot.txt",
+                   "reviews/raw", "reviews/incoming")
+
+
+def dir_size(path: Path) -> int:
+    r"""Total size in bytes of the files below a path.
+
+    Parameters
+    ----------
+    path : Path
+        File or folder.
+
+    Returns
+    -------
+    int
+        Size in bytes.
+    """
+    if path.is_file():
+        return path.stat().st_size
+    return sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
+
+
+def cmd_gc(args: argparse.Namespace) -> int:
+    r"""List the rounds past their retention; optionally compact the expired ones.
+
+    A round expires a number of days after its last record: ``--closed-days``
+    for the status ``superseded`` or ``closed``, ``--ready-days`` for ``ready``.
+    A round that is ``active`` or ``needs_user`` never expires, but is reported
+    as stale after ``--stale-days`` without a record.  Nothing is deleted
+    unless ``--compact`` is given, and then only the bulk of expired rounds
+    (see ``COMPACT_TARGETS``); the logbook, manifest, session and audit stay.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Arguments of the ``gc`` sub-command.
+
+    Returns
+    -------
+    int
+        Exit code.
+    """
+    root = root_of(args)
+    base = root / ".physics-edit"
+    today = dt.datetime.now(dt.timezone.utc)
+    rows = []
+    for session in sorted(base.glob("*/runs/*/session.md")) if base.exists() else []:
+        folder = session.parent
+        keys = read_keys(session)
+        stamps = [r.get("created_at", "") for r in (
+            load_json(p) for p in (folder / "reviews").glob("*.json"))] if (folder / "reviews").exists() else []
+        stamps.append(keys.get("created_at", ""))
+        last = max((x for x in stamps if x), default="")
+        try:
+            when = dt.datetime.strptime(last[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=dt.timezone.utc)
+        except ValueError:
+            when = dt.datetime.fromtimestamp(session.stat().st_mtime, dt.timezone.utc)
+        age = (today - when).total_seconds() / 86400
+        status = keys.get("round_status", "?")
+        limit = {"superseded": args.closed_days, "closed": args.closed_days,
+                 "ready": args.ready_days}.get(status)
+        compacted = (folder / "COMPACTED").exists()
+        if compacted:
+            state = "compacted"
+        elif limit is not None and age >= limit:
+            state = "EXPIRED"
+        elif limit is None and age >= args.stale_days:
+            state = "STALE"
+        else:
+            state = "keep"
+        bulk = sum(dir_size(folder / t) for t in COMPACT_TARGETS if (folder / t).exists())
+        rows.append((folder, status, last[:10] or "-", age, dir_size(folder), bulk, state))
+    print(f"{'round':58}{'status':12}{'last record':>12}{'days':>6}{'MB':>7}{'bulk MB':>9}  state")
+    for folder, status, last, age, size, bulk, state in rows:
+        name = str(folder.relative_to(base))
+        print(f"{name[-57:]:58}{status:12}{last:>12}{age:6.0f}{size / 1e6:7.1f}{bulk / 1e6:9.1f}  {state}")
+    expired = [r for r in rows if r[6] == "EXPIRED"]
+    if not args.compact:
+        print(f"{len(expired)} expired; `gc --compact` removes their bulk "
+              f"({sum(r[5] for r in expired) / 1e6:.1f} MB) and keeps the logbook")
+        return 0
+    freed = 0
+    for folder, *_ , bulk, state in rows:
+        if state != "EXPIRED":
+            continue
+        removed = []
+        for target in COMPACT_TARGETS:
+            path = folder / target
+            if path.is_dir():
+                shutil.rmtree(path)
+                removed.append(target)
+            elif path.exists():
+                path.unlink()
+                removed.append(target)
+        (folder / "COMPACTED").write_text(f"compacted {now()}; removed: {', '.join(removed)}\n")
+        freed += bulk
+    print(f"compacted {len(expired)} rounds, freed {freed / 1e6:.1f} MB")
+    return 0
+
+
 def cmd_defect(args: argparse.Namespace) -> int:
     r"""Log or rule a defect of the author's source.
 
@@ -2349,6 +2454,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--roles", help="sentence and/or terminology (default: sentence)")
     p.add_argument("--reason", help="why the sentence is right as written (required)")
     p.set_defaults(func=cmd_waive)
+
+    p = sub.add_parser("gc", help="list rounds past their retention; --compact drops the bulk")
+    p.add_argument("--closed-days", type=float, default=7, help="retention of superseded/closed rounds")
+    p.add_argument("--ready-days", type=float, default=30, help="retention of ready rounds")
+    p.add_argument("--stale-days", type=float, default=14,
+                   help="an active round without a record for this long is reported as stale")
+    p.add_argument("--compact", action="store_true", help="remove the bulk of expired rounds")
+    p.set_defaults(func=cmd_gc)
 
     p = sub.add_parser("status", help="one dashboard line per chunk")
     p.add_argument("round")
