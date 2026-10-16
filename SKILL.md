@@ -104,6 +104,38 @@ the shared [user-communication policy](../physics-paper-editing/user-communicati
 describe what is happening in ordinary language and never present an internal
 label without immediately explaining what it means for the author's text.
 
+## Compliance gate
+
+The bookkeeping of a round is a program, `scripts/check_edit_round.py` (run it
+with `python3`; it needs no packages; `--root` defaults to the top level of the
+current git repository). It keeps the verdicts per sentence, issues reviewer
+packets with the hash of the text they show, records reviewer reports, and decides
+with `check` whether the round may be reported as ready. It calls no LLM and
+changes no manuscript text. The project's role-to-model policy is the file
+`physics-edit-policy.json` at the repository root; the skill stores no default,
+so ask the owner when it is missing and write the answer with `policy set`.
+
+Commands: `policy`, `init`, `chunks`, `rechunk`, `pending`, `prompt`, `record`,
+`digest`, `waive`, `status`, `snapshot`, `defect`, `revision`, `check`
+(`--help` lists the options). Run these at the moments below. **Must** means the
+program refuses the next step or `check` fails without it.
+
+| # | Moment | Run | |
+|---|---|---|---|
+| 1 | Start of a round | `policy show` (if missing: ask the owner, then `policy set`), `init`, fill brief and ledger, `check` | must: policy, `init`; should: `check` (only brief, ledger and attestations should be open) |
+| 2 | Resume in a new session or after compaction | `status`, `pending`, `check` | must. `status` lists packets issued but not recorded: record or drop them before launching new ones |
+| 3 | A bullet is split, merged, moved or added | `rechunk`, `chunks` | must. A chunk with at least half of its sentences already reviewed keeps its id |
+| 4 | After each edit batch, once the editor's own canon check is done | `record --role editor_closure`, then `digest` (no accepted finding may be unapplied), `pending`, `prompt` | must: the closure (`prompt` refuses without it). A FIX that you decide not to apply: `waive --reason` |
+| 5 | Launching a reviewer | the model and effort that `prompt` prints | must |
+| 6 | A reviewer result | `record --packet pNNN --report FILE --model M --effort E` | must. It enforces model and effort, revision, and a verdict for every scoped sentence. Sentences that changed since the packet was issued are reported, not rejected: their verdicts simply no longer match |
+| 7 | A sentence review with principle hits `FIX` | `prompt --role specialist --principles ...` before the repair | must (the gate owes a specialist per hit) |
+| 8 | A batch is recorded | `pending`, `digest` | should |
+| 9 | Nothing pending in a chunk | `prompt --scope close` for the sentence and the terminology reviewer, then repairs by rows 4 to 8 | must: `check` needs a close review per role |
+| 10 | After the last edit | `snapshot` | must (`check` fails until the snapshot equals the live text) |
+| 11 | Before Stage E | `check` shows no line that begins with a chunk id | must: `record --chunk section` refuses otherwise. Stage E is recorded by hand: `--chunk section --blind --formal-scope ...` |
+| 12 | An owner ruling, a Stage E repair, or a move between chunks | `defect rule` if a defect was logged; `pending` for the blast radius; `revision --yes` only if the spine, the ledger or the conventions that reviewers judge against changed | must for `defect rule`. A bump prints and discards every current verdict and rejects packets still out. An edit of the ledger, the brief or `reviewer-context.md` without a bump is only warned about when a packet is recorded |
+| 13 | Before every report to the owner | `check`; quote its last line; end with "Deviations from the skill:" | must |
+
 ## Completion
 
 A section is ready only when all chunks are integrated, every required result

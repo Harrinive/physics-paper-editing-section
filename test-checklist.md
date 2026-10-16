@@ -86,8 +86,14 @@
       chunk text hash is unchanged.
 - [ ] A one-sentence repair re-reviewed only that sentence and its successor;
       untouched sentences kept their verdicts.
-- [ ] Each chunk has one whole-chunk sentence review and one whole-chunk
-      terminology-and-notation review of its final text.
+- [ ] Each chunk has one close review of each role, issued when nothing was
+      pending.
+- [ ] The gate commands of the SKILL.md table ran at their moments; `check` was
+      quoted in the report.
+- [ ] A FIX that the editor did not apply was recorded with `waive` and a reason,
+      and appears in the report.
+- [ ] The role-to-model policy came from the project file, or the owner was
+      asked when it was missing.
 - [ ] The sentence and terminology reviewers were given no source text.
 - [ ] A sentence flagged a third time was escalated as a decision, not
       rewritten again.
