@@ -43,7 +43,10 @@ Before moving paragraphs or drafting prose:
 4. Identify the section's terminology and notation sources, including any
    project vocabulary registry and established manuscript symbols.
 5. Identify missing links, duplicate objects, conflicting normalizations,
-   unnecessary synonyms or aliases, and unresolved scientific choices.
+   unnecessary synonyms or aliases, and unresolved scientific choices. Run the
+   delete, question, and names tests of
+   [narrative.md](../physics-paper-principles/narrative.md) ("Connecting
+   sentences carry physics") on every opening, roadmap, and wrap-up.
 6. Run the convention-merge check
    ([physical-lead.md](../physics-paper-principles/physical-lead.md))
    section-wide, not per chunk — chunk-level review sees only a local slice
