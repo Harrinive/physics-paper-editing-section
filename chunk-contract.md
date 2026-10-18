@@ -54,7 +54,7 @@ language_review:
   status: PASS | FIX | USER_DECISION
   checked_sentence_ids: <required for both modes>
   sentence_results: <all checked sentences; exhaustive includes every sentence>
-  principle_hits: <P01--P15 statuses and affected sentence IDs>
+  principle_hits: <P01--P16 statuses and affected sentence IDs>
 terminology_review: <whole-unit status and delta disposition>
 triggered_specialists: []
 object_ledger_changes: []

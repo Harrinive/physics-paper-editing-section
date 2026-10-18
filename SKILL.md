@@ -85,7 +85,7 @@ ambiguous. Detail: the micro skill's
 [language-coverage.md](../physics-paper-editing/language-coverage.md).
 
 Coverage selects sentences, not principles. Every in-scope sentence receives
-all 15 sentence checks, and every sentence in newly drafted text counts as
+all 16 sentence checks, and every sentence in newly drafted text counts as
 changed.
 
 ## Persistence

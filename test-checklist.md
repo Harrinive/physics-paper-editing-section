@@ -25,7 +25,7 @@
 - [ ] Parallel bullets, paragraphs, derivations, or subsections share one
       presentation template where nothing physical requires them to differ
       (narrative.md, parallel-unit alignment).
-- [ ] Every in-scope sentence was checked against all 15 sentence principles;
+- [ ] Every in-scope sentence was checked against all 16 sentence principles;
       coverage selected sentences, not principles.
 - [ ] Stage E ran as at most two rounds of independent blind reviewers (three per
       role, then two), combined into clusters; every must cluster was applied or

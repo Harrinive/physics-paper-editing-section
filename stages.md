@@ -92,7 +92,7 @@ For each pending chunk:
    editor uses [scaffolded-mode.md](../physics-paper-editing/scaffolded-mode.md).
 4. Reconcile every new or changed object with the global ledger before writing.
 5. Apply canon closure from the micro skill. Every changed or newly written
-   sentence receives all 15 sentence checks; every other applicable canon
+   sentence receives all 16 sentence checks; every other applicable canon
    principle is also mandatory.
 6. Under `reviewed`, run one whole-unit sentence reviewer and one
    terminology-and-notation reviewer on the first draft of the chunk, then every

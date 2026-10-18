@@ -478,6 +478,26 @@ class TestPackets(RoundCase):
         self.assertIn("Review the sentences.", text)
         self.assertNotIn("source-original", text)
 
+    def test_sentence_packet_marks_reference_material_and_omits_registry(self):
+        """The cold read needs the reference material marked and no registry entries."""
+        chunk = self.manifest["chunks"][0]["id"]
+        self.closure(chunk)
+        self.prompt(chunk, "sentence")
+        text = (self.folder / "packets" / "p001.md").read_text()
+        self.assertIn("the human reader does not have it", text)
+        self.assertNotIn("## Registry entries", text)
+        self.prompt(chunk, "terminology")
+        text = (self.folder / "packets" / "p002.md").read_text()
+        self.assertIn("## Registry entries", text)
+
+    def test_reader_load_hit_is_accepted_and_owes_a_specialist(self):
+        """P16 is a valid hit, and it is served by the idiom/economy/load specialist."""
+        chunk = self.manifest["chunks"][0]["id"]
+        self.closure(chunk)
+        code, out = self.review(chunk, "sentence", {"S01": "FIX"}, principle_hits={"P16": "FIX"})
+        self.assertEqual(code, 0, out)
+        self.assertIn("principle P16 was hit", self.check()[1])
+
     def test_first_review_then_close_review_makes_the_round_ready(self):
         """First review (full), then the close review once nothing is pending."""
         self.fill_documents()

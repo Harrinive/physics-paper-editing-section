@@ -180,7 +180,7 @@ PRINCIPLE_GROUPS = (
     {"P03", "P15"},
     {"P04", "P09", "P10"},
     {"P05", "P13"},
-    {"P06", "P08", "P14"},
+    {"P06", "P08", "P14", "P16"},
     {"P07"},
     {"P11"},
     {"P12"},
@@ -1343,7 +1343,7 @@ Do not edit the manuscript or any other file.
   "sentence_results": {"S03": "FIX", "S04": "PASS"},   // sentence and terminology roles:
                                                       // one entry per sentence in SCOPE
   "terminology_notation": "PASS | FIX | USER_DECISION", // terminology role only
-  "principle_hits": {"P01": "FIX"},                    // sentence role: P01..P15
+  "principle_hits": {"P01": "FIX"},                    // sentence role: P01..P16
   "findings": [
     {"sentence": "S03", "principle": "P01", "severity": "must | optional",
      "evidence": "one or two sentences", "repair": "exact proposed wording"}
@@ -1540,14 +1540,20 @@ def issue_packet(rnd: Round, chunk: dict, role: str, scope: str, covered: list[s
         mark = "[scope] " if (role == "principle_specialist" or sid in covered) else ""
         lines.append(f"[{sid}] {mark}{text}")
     lines += ["", "### Text after the chunk (context only)", ""] + (after or ["(none)"])
+    if role == "sentence_reviewer":
+        # The cold read (sentence.md, principle 16) needs to know what the reader does not
+        # have: everything below is reference material, and no registry entries are given.
+        lines += ["", "## Reference material (the human reader does not have it; "
+                  "anything taken from here is a lookup)"]
     lines += ["", "## Section brief", "", brief]
     if context_file.exists():
         lines += ["", "## Reviewer context (rulings of the owner and conventions)", "",
                   context_file.read_text()]
     lines += ["", "## Object-ledger rows that occur in this chunk", "",
-              ledger_rows((rnd.folder / "object-ledger.md").read_text(), chunk_prose), "",
-              "## Registry entries that occur in this chunk", "",
-              registry_entries(terms, plain)]
+              ledger_rows((rnd.folder / "object-ledger.md").read_text(), chunk_prose)]
+    if role != "sentence_reviewer":
+        lines += ["", "## Registry entries that occur in this chunk", "",
+                  registry_entries(terms, plain)]
     path = folder / f"{pid}.md"
     path.write_text("\n".join(lines) + "\n")
     family, effort = rnd.role(role, principles)
@@ -1839,7 +1845,7 @@ def record_from_packet(rnd: Round, args: argparse.Namespace) -> int:
         if role == "sentence_reviewer":
             hits = report.get("principle_hits", {})
             bad = {k: v for k, v in hits.items()
-                   if not re.fullmatch(r"P(0[1-9]|1[0-5])", k) or v not in STATUSES}
+                   if not re.fullmatch(r"P(0[1-9]|1[0-6])", k) or v not in STATUSES}
             if bad:
                 return fail(f"bad principle_hits {bad}")
             rec["principle_hits"] = hits
