@@ -61,7 +61,7 @@ necessary, defined, and reconciled deliberately.
 | B | Section physics spine, global object ledger, structural plan |
 | C | Source-format-safe argument chunks, normally at most 12 sentences, with a defined oversized-unit fallback |
 | D | Direct or reviewed editing per chunk; global ledger updated deliberately |
-| E | One section-wide physics-story, object-consistency, and formal review |
+| E | Section-wide physics-story, object-consistency, and formal review: at most two rounds of independent blind reviewers, combined and adjudicated |
 
 Do not launch one reviewer per sentence. A reviewed chunk uses one whole-unit
 sentence reviewer and one terminology-and-notation reviewer, plus triggered

@@ -14,6 +14,9 @@ Section review exists to catch relationships that local chunks cannot see.
 - Do parallel bullets, paragraphs, derivations, or subsections share one
   presentation template where nothing physical requires them to differ?
   (parallel-unit alignment, [narrative.md](../physics-paper-principles/narrative.md))
+- Do openings, roadmaps, and wrap-ups carry a physical point or relation
+  (connecting-sentence delete, question, and names tests,
+  [narrative.md](../physics-paper-principles/narrative.md))?
 
 Low-risk direct chunks may be self-only. Reviewed chunks use the mandatory
 sentence and terminology-and-notation reviewers plus the triggered specialists
