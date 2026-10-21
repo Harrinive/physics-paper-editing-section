@@ -5,6 +5,7 @@ Run with ``python3 -m unittest discover -s tools`` from the repository root.
 
 import contextlib
 import io
+import json
 import re
 import tempfile
 import unittest
@@ -53,13 +54,20 @@ def write_policy(root):
 class RoundCase(unittest.TestCase):
     """A temporary repository with one source file and one round."""
 
+    #: text of the source file; a subclass may replace it
+    source_text = SOURCE
+    #: project vocabulary registry written at the root, or None for no registry
+    registry = None
+
     def setUp(self):
         """Create the repository, initialise a round, and fill the templates."""
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         (self.root / "Manuscript").mkdir()
         self.src = self.root / "Manuscript" / "demo.tex"
-        self.src.write_text(SOURCE)
+        self.src.write_text(self.source_text)
+        if self.registry is not None:
+            (self.root / "project-vocabulary.json").write_text(json.dumps(self.registry))
         write_policy(self.root)
         skills = self.root / "skills" / "physics-paper-editing"
         skills.mkdir(parents=True)
@@ -325,6 +333,43 @@ class TestGate(RoundCase):
         session.write_text(session.read_text().replace("scientific_risk: high", "scientific_risk: low"))
         code, out = self.check()
         self.assertIn("at least medium risk", out)
+
+
+BANNED_REGISTRY = {"version": 1, "terms": [
+    {"term": "logical qubit", "standard_meaning": "The qubit that the code protects.",
+     "avoid_names": ["coded qubit", "coded qubits"]}]}
+
+
+@unittest.skipIf(cer.load_vocabulary_checker() is None, "sc-qubit-vocabulary is not installed")
+class TestBannedNames(RoundCase):
+    """The gate scans the reviewed text for the avoid_names of the registry."""
+
+    registry = BANNED_REGISTRY
+    source_text = SOURCE.replace(
+        "about the logical qubit.",
+        "about the coded qubit.\n    % Owner: the coded qubit is not a name here.").replace(
+        "\\label{sec:demo}", "\\label{sec:coded-qubit}")
+
+    def test_banned_name_blocks(self):
+        """A banned name in a reviewed sentence keeps the round from being ready."""
+        self.make_ready()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("banned name: c01 S01: 'coded qubit'", out)
+
+    def test_only_the_read_text_is_scanned(self):
+        """A comment and a label key are not uses of a banned name."""
+        self.make_ready()
+        code, out = self.check()
+        self.assertEqual(out.count("banned name:"), 1, out)
+
+    def test_terminology_waiver_clears_a_hit(self):
+        """Words that do not name the concept are cleared by a terminology waiver."""
+        self.make_ready()
+        self.run_cli("waive", str(self.folder), "--chunk", "c01", "--sentences", "S01",
+                     "--roles", "terminology", "--reason", "ordinary words here")
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
 
 
 class TestScopedReview(RoundCase):

@@ -114,6 +114,13 @@ with `check` whether the round may be reported as ready. It calls no LLM and
 changes no manuscript text. The project's role-to-model policy is the file
 `physics-edit-policy.json` at the repository root; the skill stores no default,
 so ask the owner when it is missing and write the answer with `policy set`.
+When the repository has `project-vocabulary.json` and the sibling skill
+`sc-qubit-vocabulary` is installed, `check` also scans every reviewed sentence,
+captions included, for the `avoid_names` of the whole registry (comments,
+labels, and paths are not read). A hit blocks the round until the sentence is
+fixed, or, when the words do not name the registered concept, until a
+`waive --roles terminology` records why; give the hits to the terminology
+reviewer of the chunk.
 
 Commands: `policy`, `init`, `chunks`, `rechunk`, `pending`, `prompt`, `record`,
 `digest`, `waive`, `stage-e`, `status`, `snapshot`, `defect`, `revision`, `gc`, `check`

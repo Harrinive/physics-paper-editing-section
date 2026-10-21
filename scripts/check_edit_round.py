@@ -1308,6 +1308,86 @@ def load_registry_terms(root: Path) -> list[dict]:
     return json.loads(path.read_text()).get("terms", [])
 
 
+#: The avoid_names scan of the sibling skill ``sc-qubit-vocabulary``.
+VOCABULARY_CHECKER_CANDIDATES = (
+    str(Path(__file__).resolve().parents[2] / "sc-qubit-vocabulary" / "scripts"
+        / "check_note_vocabulary.py"),
+    "~/.agents/skills/sc-qubit-vocabulary/scripts/check_note_vocabulary.py",
+    "~/.claude/skills/sc-qubit-vocabulary/scripts/check_note_vocabulary.py",
+)
+
+
+def load_vocabulary_checker():
+    r"""Import the avoid_names scan of ``sc-qubit-vocabulary``, if installed.
+
+    Returns
+    -------
+    module or None
+        The module ``check_note_vocabulary``, or None when no candidate path
+        of :data:`VOCABULARY_CHECKER_CANDIDATES` exists.
+    """
+    import importlib.util
+    path = next((Path(c).expanduser() for c in VOCABULARY_CHECKER_CANDIDATES
+                 if Path(c).expanduser().exists()), None)
+    if path is None:
+        return None
+    spec = importlib.util.spec_from_file_location("check_note_vocabulary", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def banned_names(rnd: "Round") -> tuple[list[str], str]:
+    r"""Uses of a banned name (an ``avoid_names`` string) in the live text.
+
+    The scan covers the whole project registry and the standard registry of
+    ``sc-qubit-vocabulary``, not only the entries given to a reviewer, and
+    reads the sentences as the reader does (no comments, labels, or paths).
+    A string that is a banned name for one concept can be ordinary words
+    elsewhere ("block diagonal"); such a hit is cleared by a terminology waiver
+    of its sentence (``waive --roles terminology``), which names the reason.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+
+    Returns
+    -------
+    tuple of (list of str, str)
+        The uncleared hits, one line each, and a note when the scan could not
+        run (no checker); the note is empty when it ran or had no registry.
+    """
+    registry = rnd.root / "project-vocabulary.json"
+    if not registry.exists():
+        return [], ""
+    vocab = load_vocabulary_checker()
+    if vocab is None:
+        return [], ("banned-name scan skipped: sc-qubit-vocabulary is not installed; "
+                    "search the text for the avoid_names of project-vocabulary.json by hand")
+    merged = vocab._annotated_merge(
+        vocab._load_registry(vocab.DEFAULT_REGISTRY, label="standard-vocabulary.json"),
+        vocab._load_registry(registry, label="project-vocabulary.json"))
+    terms = merged["terms"]
+    man = rnd.manifest
+    waived = {key for rec in rnd.reviews()
+              if rec.get("role") == "editor_waiver"
+              and "terminology_reviewer" in rec.get("waives", [])
+              and rec.get("context_revision") == man["context_revision"]
+              and rec.get("ledger_revision") == man["ledger_revision"]
+              for key in rec.get("sentence_keys", {}).values()}
+    out: list[str] = []
+    for chunk in man.get("chunks", []):
+        keys = chunk_keys(rnd.units, chunk)
+        for sid, sentence in chunk_sentences(rnd.units, chunk):
+            if keys[sid] in waived:
+                continue
+            for _, _, name, term, _ in vocab.avoid_hits(vocab.mask_latex(sentence), terms):
+                out.append(f"{chunk['id']} {sid}: {name!r}, use {term!r} (or `waive --roles "
+                           f"terminology` when the words do not name this concept)")
+    return out, ""
+
+
 PROMPT_FILE_CANDIDATES = (
     str(Path(__file__).resolve().parents[2] / "physics-paper-editing" / "review-prompts.md"),
     "~/.agents/skills/physics-paper-editing/review-prompts.md",
@@ -2690,6 +2770,10 @@ def evaluate(rnd: Round) -> tuple[list[str], list[str], list[str]]:
             fixes.append("formal_review_scope none is allowed only without formal content and with formal_none_reason")
 
     # -- text, snapshots, revisions ------------------------------------------
+    hits, scan_note = banned_names(rnd)
+    fixes.extend(f"banned name: {hit}" for hit in hits)
+    if scan_note:
+        notes.append(scan_note)
     original = folder / "source-original.txt"
     if original.exists() and sha(original.read_text()) != manifest.get("source_original_sha256"):
         fixes.append("source-original.txt changed (it must be immutable)")
