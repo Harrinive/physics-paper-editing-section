@@ -1549,6 +1549,47 @@ def registry_entries(terms: list[dict], text: str) -> str:
     return "\n".join(out) or "(no registry term occurs in this chunk)"
 
 
+PATTERN_HEADING = ("## Pattern report (check_prose_patterns.py; advisory evidence, "
+                   "candidates for your judgment, not verdicts)")
+
+
+def pattern_report(rnd: Round, first: int | None = None, last: int | None = None) -> str:
+    r"""Advisory report of ``check_prose_patterns.py`` on the live text.
+
+    The report lists restated technical phrases, template runs, and
+    caption--text overlap; reviewers judge each candidate against the canon.
+    A failure of the detector never blocks a packet.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+    first, last : int, optional
+        1-based line range of the live file; the whole file (with its summary
+        line) when omitted.
+
+    Returns
+    -------
+    str
+        The plain-text report.
+    """
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    try:
+        import check_prose_patterns as cpp
+        path = rnd.root / rnd.manifest["source_file"]
+        fmt = "markdown" if path.suffix.lower() in (".md", ".markdown") else "latex"
+        registry = rnd.root / "project-vocabulary.json"
+        result = cpp.analyze(rnd.live_text, fmt,
+                             cpp.registry_phrases(registry) if registry.exists() else [])
+        if first is not None:
+            result = cpp.restrict(result, first, last if last is not None else first)
+        return cpp.format_report(result)
+    except Exception as err:  # advisory only: report and go on
+        return f"(pattern report unavailable: {err})"
+
+
 def issue_packet(rnd: Round, chunk: dict, role: str, scope: str, covered: list[str],
                  principles: list[str], prompts: Path) -> dict:
     r"""Write a reviewer packet and its metadata; return the metadata.
@@ -1584,7 +1625,10 @@ def issue_packet(rnd: Round, chunk: dict, role: str, scope: str, covered: list[s
            for s in u.get("raw_sentences", [])]
     if len(raw) != len(sentences):
         raw = [t for _, t in sentences]
-    before = [s for u in rnd.units[:chunk["first_unit"] - 1][-1:] for s in u.get("raw_sentences", [])][-2:]
+    # The whole paragraph before the chunk is context: what it established is given
+    # information for the reader (narrative.md), not a lookup (sentence.md, principle 16).
+    prev_unit = rnd.units[chunk["first_unit"] - 2] if chunk["first_unit"] > 1 else None
+    before = list(prev_unit.get("raw_sentences", [])) if prev_unit else []
     after = [s for u in rnd.units[chunk["last_unit"]:][:1] for s in u.get("raw_sentences", [])][:2]
     chunk_prose = "\n".join(raw + before + after)
     plain = "\n".join(plain_text(x) for x in raw + before + after)
@@ -1614,12 +1658,17 @@ def issue_packet(rnd: Round, chunk: dict, role: str, scope: str, covered: list[s
              "after the chunk, are read-only context.", "",
              "## Report", "", REPORT_SCHEMA.replace("REPORT_PATH", str(report))
              .replace("PACKET_ID", pid), "", "## Candidate", "",
-             "### Text before the chunk (context only)", ""] + (before or ["(none)"]) + [
+             "### The paragraph before the chunk (context only; the reader has just read it)",
+             ""] + (before or ["(none)"]) + [
              "", f"### Chunk {chunk['id']}", ""]
     for (sid, _), text in zip(sentences, raw):
         mark = "[scope] " if (role == "principle_specialist" or sid in covered) else ""
         lines.append(f"[{sid}] {mark}{text}")
     lines += ["", "### Text after the chunk (context only)", ""] + (after or ["(none)"])
+    if role in ("sentence_reviewer", "terminology_reviewer"):
+        first = (prev_unit or rnd.units[chunk["first_unit"] - 1])["start"]
+        lines += ["", PATTERN_HEADING, "",
+                  pattern_report(rnd, first, rnd.units[chunk["last_unit"] - 1]["end"])]
     if role == "sentence_reviewer":
         # The cold read (sentence.md, principle 16) needs to know what the reader does not
         # have: everything below is reference material, and no registry entries are given.
@@ -2153,6 +2202,8 @@ def issue_stage_e_packet(rnd: Round, role: str, prompts: Path) -> dict:
              (rnd.folder / "source-original.txt").read_text(), "",
              "## Candidate (the whole text; sentences are named CHUNK.SID)", ""]
     lines += [f"[{gid}] {text}" for gid, _, text in sentences]
+    if role == "holistic_reviewer":
+        lines += ["", PATTERN_HEADING, "", pattern_report(rnd)]
     lines += ["", "## Section brief", "", (rnd.folder / "section-brief.md").read_text()]
     if context_file.exists():
         lines += ["", "## Reviewer context (rulings of the owner and conventions)", "",

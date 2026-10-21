@@ -21,9 +21,15 @@ user_constraints: <verbatim relevant constraints>
 role_model_policy: <active section policy; standing or user-selected>
 section_physics_spine: <current spine>
 global_object_ledger: <current ledger>
-adjacent_context: <one to three sentences each side>
+adjacent_context: <the whole paragraph before the chunk; one to three sentences after it>
 source_anchor: <stable source span>
 ```
+
+The chunk's own paragraphs and the whole paragraph before the chunk are the
+reviewers' read-only context: what they establish is given information
+([narrative.md](../physics-paper-principles/narrative.md)). With less, a review
+counts a name the reader has just read as a lookup (sentence principle 16) and
+pushes the text to re-gloss it.
 
 The micro editor may raise risk, flag an unresolved scientific choice, or
 propose a ledger update. It may not silently redefine a global object.

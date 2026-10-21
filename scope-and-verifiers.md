@@ -14,6 +14,9 @@ Section review exists to catch relationships that local chunks cannot see.
 - Do parallel bullets, paragraphs, derivations, or subsections share one
   presentation template where nothing physical requires them to differ?
   (parallel-unit alignment, [narrative.md](../physics-paper-principles/narrative.md))
+- Does a run of three or more prose sentences or paragraphs repeat one
+  template without a frame, or join contrasting content only by "so", "also",
+  or nothing? (template runs, same file)
 
 Low-risk direct chunks may be self-only. Reviewed chunks use the mandatory
 sentence and terminology-and-notation reviewers plus the triggered specialists
@@ -29,6 +32,12 @@ defined by the micro skill.
 - Are formal statements consistent across chunks?
 - Do parallel units still share the template Stage B set, or did independent
   chunk edits let them drift for no physical reason?
+- Read in sequence: does a chunk restate in full what the paragraph before it
+  established, does a template run span chunks without a frame, and does each
+  caption highlight the citing text rather than repeat it word for word or
+  argue on its own? (given information, template runs, redundancy and balance
+  in [narrative.md](../physics-paper-principles/narrative.md); the packet's
+  pattern report is evidence, not a verdict)
 
 Run Stage E as at most two rounds of independent blind reviewers (three per
 role in round 1, two in round 2), combined by agreement and severity and

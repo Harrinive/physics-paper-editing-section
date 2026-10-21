@@ -23,7 +23,8 @@ Every chunk receives:
   active role-to-model policy, whether standing or user-selected;
 - section physics spine;
 - global object ledger;
-- adjacent context and manuscript conventions;
+- adjacent context (at least the whole paragraph before the chunk) and
+  manuscript conventions;
 - its initial risk and any formal-review trigger.
 
 The chunk may raise its risk but must not silently lower a section-declared

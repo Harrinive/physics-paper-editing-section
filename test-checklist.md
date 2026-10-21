@@ -25,6 +25,10 @@
 - [ ] Parallel bullets, paragraphs, derivations, or subsections share one
       presentation template where nothing physical requires them to differ
       (narrative.md, parallel-unit alignment).
+- [ ] Chunk reviewers received the whole paragraph before the chunk and the
+      pattern report; Stage E holistic reviewers received the whole-text
+      report and checked given information, template runs, and caption–text
+      repetition across chunks.
 - [ ] Every in-scope sentence was checked against all 16 sentence principles;
       coverage selected sentences, not principles.
 - [ ] Stage E ran as at most two rounds of independent blind reviewers (three per
@@ -62,6 +66,12 @@
 - [ ] Two parallel subsections that differ because they cover genuinely
       different physics keep that difference rather than being forced into
       false uniformity.
+- [ ] A name defined in one paragraph and restated in full in the next uses its
+      short form, unless the short form would be ambiguous there.
+- [ ] A run of three prose paragraphs with one opening gets a framing sentence;
+      a displayed parallel list keeps its alignment.
+- [ ] A caption sentence repeated word for word in the citing text is cut to a
+      takeaway; a takeaway in other words is kept.
 - [ ] A valid construction definition is not forced into an invented operational form.
 - [ ] A user prohibition on subagents is honored.
 - [ ] An unknown model takes economy routing without an invented identifier.

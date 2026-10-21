@@ -120,7 +120,11 @@ captions included, for the `avoid_names` of the whole registry (comments,
 labels, and paths are not read). A hit blocks the round until the sentence is
 fixed, or, when the words do not name the registered concept, until a
 `waive --roles terminology` records why; give the hits to the terminology
-reviewer of the chunk.
+reviewer of the chunk. Packets for the sentence and terminology reviewers
+also carry the whole paragraph before the chunk and the advisory report of
+`scripts/check_prose_patterns.py` for the chunk; Stage E holistic packets
+carry the whole-text report. Reviewers confirm or clear its candidates; the
+report never blocks a round by itself.
 
 Commands: `policy`, `init`, `chunks`, `rechunk`, `pending`, `prompt`, `record`,
 `digest`, `waive`, `stage-e`, `status`, `snapshot`, `defect`, `revision`, `gc`, `check`

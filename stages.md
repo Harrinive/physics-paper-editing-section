@@ -55,7 +55,11 @@ Before moving paragraphs or drafting prose:
    subsections, pick one shared presentation template for them (parallel-unit
    alignment in [narrative.md](../physics-paper-principles/narrative.md))
    before chunking, so independently edited chunks don't drift apart for no
-   physical reason.
+   physical reason. For a run of three or more prose sentences or paragraphs
+   with one template, plan its frame instead (template runs, same file).
+   Evidence: `python3 scripts/check_prose_patterns.py <file> [--registry project-vocabulary.json]`,
+   whose whole-text report also lists restated names and caption sentences
+   repeated in the text.
 8. Make structure-level moves only after the physics architecture is coherent.
 
 An unresolved essential meaning becomes `needs_user`; do not ask a reviewer to
@@ -102,7 +106,9 @@ For each pending chunk:
    principle specialist triggered by the sentence hit map. Apply the accepted
    findings in one batch and re-review only the touched sentences with their
    neighbours as context
-   ([scoped-review.md](../physics-paper-editing/scoped-review.md)). When no
+   ([scoped-review.md](../physics-paper-editing/scoped-review.md)). The
+   packets of both reviewers carry the whole paragraph before the chunk and
+   the advisory pattern report for the chunk. When no
    sentence is pending, run one whole-chunk sentence review and one whole-chunk
    terminology-and-notation review of the final text (the close of the chunk).
    The sentence and terminology reviewers receive no source text.
@@ -126,8 +132,10 @@ For each pending chunk:
 
 Stage E sees what the chunk reviews cannot: the physics story and its order across
 the section, the identity and scope of every object, the payoff of each name,
-redundancy between distant passages, claim strength, agreement with the
-neighbouring sections, and formal logic. The wording of one sentence is covered
+redundancy between distant passages, given information restated across chunk
+boundaries, template runs that span chunks, caption–text repetition, claim
+strength, agreement with the neighbouring sections, and formal logic. Holistic
+packets carry the whole-text pattern report as evidence. The wording of one sentence is covered
 by the chunk reviews; a reviewer reports such a defect as a `local` item, which
 is repaired in the chunk loop and does not count as a finding.
 

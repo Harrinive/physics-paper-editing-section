@@ -535,6 +535,20 @@ class TestPackets(RoundCase):
         text = (self.folder / "packets" / "p002.md").read_text()
         self.assertIn("## Registry entries", text)
 
+    def test_packet_gives_the_whole_paragraph_before_and_the_pattern_report(self):
+        """Given information needs the preceding paragraph; the detector output is advisory."""
+        chunk = self.manifest["chunks"][1]["id"]
+        self.closure(chunk)
+        self.prompt(chunk, "sentence")
+        text = (self.folder / "packets" / "p001.md").read_text()
+        before = text.split("### The paragraph before the chunk")[1].split("### Chunk")[0]
+        self.assertIn("The second claim has a displayed equation", before)
+        self.assertIn("is the left side.", before)
+        self.assertIn("## Pattern report", text)
+        self.assertLess(text.index("## Pattern report"), text.index("## Reference material"))
+        self.prompt(chunk, "terminology")
+        self.assertIn("## Pattern report", (self.folder / "packets" / "p002.md").read_text())
+
     def test_reader_load_hit_is_accepted_and_owes_a_specialist(self):
         """P16 is a valid hit, and it is served by the idiom/economy/load specialist."""
         chunk = self.manifest["chunks"][0]["id"]
