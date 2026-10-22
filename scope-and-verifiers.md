@@ -17,6 +17,9 @@ Section review exists to catch relationships that local chunks cannot see.
 - Does a run of three or more prose sentences or paragraphs repeat one
   template without a frame, or join contrasting content only by "so", "also",
   or nothing? (template runs, same file)
+- Do openings, roadmaps, and wrap-ups carry a physical point or relation
+  (connecting-sentence delete, question, and names tests,
+  [narrative.md](../physics-paper-principles/narrative.md))?
 
 Low-risk direct chunks may be self-only. Reviewed chunks use the mandatory
 sentence and terminology-and-notation reviewers plus the triggered specialists

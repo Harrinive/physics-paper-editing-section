@@ -22,6 +22,8 @@
       whole-unit sentence reviewer and one terminology-and-notation reviewer per chunk.
 - [ ] Any factor or normalization change passed factor round-trip, inline-substitution, and payoff tests.
 - [ ] Stage B ran the section-wide convention-merge check (physical-lead.md).
+- [ ] Stage B ran the connecting-sentence tests (narrative.md) on every
+      opening, roadmap, and wrap-up.
 - [ ] Parallel bullets, paragraphs, derivations, or subsections share one
       presentation template where nothing physical requires them to differ
       (narrative.md, parallel-unit alignment).
