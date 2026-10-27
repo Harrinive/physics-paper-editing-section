@@ -35,7 +35,11 @@
 Before moving paragraphs or drafting prose:
 
 1. Write the section physics spine: situation → mechanism → relevant quantities
-   → principal result.
+   → principal result. The result line names every quantity the section states
+   exactly; any other number in the section is support or illustration, stated
+   through its mechanism with a pointer
+   ([narrative.md](../physics-paper-principles/narrative.md), level of
+   precision).
 2. Build the global object ledger using
    [physical-lead.md](../physics-paper-principles/physical-lead.md).
 3. Record every object's category, scope, units/scaling, included factors,

@@ -875,7 +875,7 @@ BRIEF_TEMPLATE = """# Section brief
 context_revision: ctx-1
 
 ## Physics spine
-TODO: situation, mechanism, relevant quantities, principal result.
+TODO: situation, mechanism, relevant quantities, principal result (the result line names every quantity the section states exactly).
 
 ## Neighbouring context and conventions
 TODO
