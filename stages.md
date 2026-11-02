@@ -145,10 +145,11 @@ Stage E sees what the chunk reviews cannot: the physics story and its order acro
 the section, the identity and scope of every object, the payoff of each name,
 redundancy between distant passages, given information restated across chunk
 boundaries, template runs that span chunks, caption–text repetition, claim
-strength, agreement with the neighbouring sections, and formal logic. Holistic
-packets carry the whole-text pattern report as evidence. The wording of one sentence is covered
-by the chunk reviews; a reviewer reports such a defect as a `local` item, which
-is repaired in the chunk loop and does not count as a finding.
+strength, level of precision against the spine's result line, agreement with the
+neighbouring sections, and formal logic. Holistic packets carry the whole-text
+pattern report as evidence. The wording of one sentence is covered by the chunk
+reviews; a reviewer reports such a defect as a `local` item, which is repaired
+in the chunk loop and does not count as a finding.
 
 Stage E has at most two rounds. A random reviewer always finds something, so a
 round is a bounded sample of independent reviewers, combined and adjudicated;

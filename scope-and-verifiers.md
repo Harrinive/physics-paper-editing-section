@@ -5,6 +5,9 @@ Section review exists to catch relationships that local chunks cannot see.
 ## Stage B focus
 
 - Is the physics spine faithful to the manuscript's promised result?
+- Does the spine's result line name every quantity the section will state
+  exactly (level of precision,
+  [narrative.md](../physics-paper-principles/narrative.md))?
 - Are the physically native quantities identified before formal helpers?
 - Do object scopes and factor conventions remain coherent across the section?
 - Are any scientific choices unresolved before prose is reorganized?
@@ -32,6 +35,10 @@ defined by the micro skill.
 - Does the assembled section preserve established terminology and notation,
   with every new technical term or symbol necessary and defined?
 - Do chunk boundaries preserve cause, implication, and claim strength?
+- Do exact numbers and conditions in the assembled section match the spine's
+  result line, with other claims stated through mechanism plus pointer
+  (level of precision,
+  [narrative.md](../physics-paper-principles/narrative.md))?
 - Are formal statements consistent across chunks?
 - Do parallel units still share the template Stage B set, or did independent
   chunk edits let them drift for no physical reason?

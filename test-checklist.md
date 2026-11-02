@@ -6,7 +6,9 @@
 - [ ] The active round has a unique `round_id`, explicit `language_coverage`,
       immutable original source and boundaries, current candidate, identifiers,
       and is selected by `CURRENT`.
-- [ ] `section-brief.md` contains the global physics spine.
+- [ ] `section-brief.md` contains the global physics spine whose result line
+      names every quantity the section states exactly (narrative.md, level of
+      precision).
 - [ ] `paragraph-map.md` says what each paragraph is for, and every `story_check`
       was ruled from it.
 - [ ] `object-ledger.md` covers every new or changed story-bearing object.
@@ -26,6 +28,8 @@
 - [ ] Stage B ran the section-wide convention-merge check (physical-lead.md).
 - [ ] Stage B ran the connecting-sentence tests (narrative.md) on every
       opening, roadmap, and wrap-up.
+- [ ] Stage B set the spine result line under level of precision (narrative.md)
+      before drafting.
 - [ ] Parallel bullets, paragraphs, derivations, or subsections share one
       presentation template where nothing physical requires them to differ
       (narrative.md, parallel-unit alignment).
@@ -39,8 +43,8 @@
       role, then two), combined into clusters; every must cluster was applied or
       waived with a reason, or deferred to the owner; no round 3.
 - [ ] Stage E findings were global (order, object identity, payoff, redundancy,
-      claim strength, formal logic); one-sentence wording items went back to the
-      chunk loop as `local` items.
+      claim strength, level of precision, formal logic); one-sentence wording
+      items went back to the chunk loop as `local` items.
 - [ ] All applicable required quality axes pass; any `N/A` has no object to
       inspect, and no unresolved `FIX` or `USER_DECISION` remains.
 - [ ] Verification independence is stated accurately.
