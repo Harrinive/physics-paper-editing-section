@@ -118,7 +118,7 @@ changes no manuscript text. The project's role-to-model policy is the file
 `physics-edit-policy.json` at the repository root; the skill stores no default,
 so ask the owner when it is missing and write the answer with `policy set`.
 When the repository has `project-vocabulary.json` and the sibling skill
-`sc-qubit-vocabulary` is installed, `check` also scans every reviewed sentence,
+`physics-vocabulary` is installed, `check` also scans every reviewed sentence,
 captions included, for the `avoid_names` of the whole registry (comments,
 labels, and paths are not read). A hit blocks the round until the sentence is
 fixed, or, when the words do not name the registered concept, until a
@@ -148,7 +148,7 @@ program refuses the next step or `check` fails without it.
 | 6 | A reviewer result | `record --packet pNNN --report FILE --model M --effort E` | must. It enforces model and effort, revision, and a verdict for every scoped sentence. Sentences that changed since the packet was issued are reported, not rejected: their verdicts simply no longer match |
 | 7 | A sentence review with principle hits `FIX` | `prompt --role specialist --principles ...` before the repair | must (the gate owes a specialist per hit) |
 | 8 | A batch is recorded | `pending`, `digest`; decide every `story_check`, then edit under row 4 | should |
-| 9 | Nothing pending in a chunk | `prompt --scope close` for the sentence and the terminology reviewer, then repairs by rows 4 to 8 | must: `check` needs a close review per role |
+| 9 | Nothing pending in a chunk | `prompt --scope close` for the sentence and the terminology reviewer, then repairs by rows 4 to 8 | must: `check` needs a close review per role, except for a chunk that selective coverage leaves unchanged |
 | 10 | After the last edit | `snapshot` | must (`check` fails until the snapshot equals the live text) |
 | 11 | Before Stage E | `check` shows no line that begins with a chunk id | must: `prompt --role holistic\|formal` refuses otherwise |
 | 12 | A Stage E round (at most two) | `prompt --role holistic` and `--role formal` once per reviewer (3 per role in round 1, 2 in round 2; the program refuses more), each launched as a new agent that gets only the printed line; `record --packet` for each; `stage-e merge`; `stage-e rule --cluster K.. --as applied\|waived\|deferred --reason ...` | must. A cluster is must when one reviewer calls it a claim defect or two reviewers raise it; `applied` is accepted only when its sentences changed; round 2 is required when round 1 applied a claim or global cluster; there is no round 3; one-sentence wording items are `local` and go back to the chunk loop |

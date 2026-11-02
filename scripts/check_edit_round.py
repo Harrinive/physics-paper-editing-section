@@ -61,6 +61,7 @@ import json
 import re
 import shutil
 import sys
+from difflib import SequenceMatcher
 from pathlib import Path
 
 
@@ -525,6 +526,35 @@ def chunk_keys(units: list[dict], chunk: dict) -> dict[str, str]:
     return keys
 
 
+def aligned_sentences(before: list[dict], after: list[dict]) -> set[int]:
+    r"""Positions of the sentences of a text that stand unchanged in an older text.
+
+    A sentence stands unchanged when it and the sentence before it, math and
+    references included, occur in the older text in the same order as in the
+    new one.  A moved passage falls outside this alignment, so every sentence
+    of it counts as changed (scoped-review.md, rule 2).
+
+    Parameters
+    ----------
+    before : list of dict
+        Output of :func:`split_units` for the older text.
+    after : list of dict
+        Output of :func:`split_units` for the new text.
+
+    Returns
+    -------
+    set of int
+        Zero-based positions in the sentences of ``after``.
+    """
+    def keys(units: list[dict]) -> list[str]:
+        """Hash of each sentence and its predecessor, in reading order."""
+        sentences = [s for u in units for s in u["raw_sentences"]]
+        return [sha(p + "\n" + s) for p, s in zip([""] + sentences, sentences)]
+
+    matcher = SequenceMatcher(None, keys(before), keys(after), autojunk=False)
+    return {block.b + i for block in matcher.get_matching_blocks() for i in range(block.size)}
+
+
 # ---------------------------------------------------------------------------
 # round state
 # ---------------------------------------------------------------------------
@@ -611,6 +641,8 @@ class Round:
         self.manifest: dict = {}
         self.units: list[dict] = []
         self.live_text = ""
+        self.unchanged_at: set[int] = set()
+        self.original_texts: set[str] = set()
 
     def load(self) -> None:
         r"""Read session, manifest, and the live source file.
@@ -625,6 +657,11 @@ class Round:
         source = self.root / self.manifest["source_file"]
         self.live_text = source.read_text()
         self.units = split_units(self.live_text.splitlines())
+        original = self.folder / "source-original.txt"
+        if self.session.get("language_coverage") == "selective" and original.exists():
+            start = split_units(original.read_text().splitlines())
+            self.unchanged_at = aligned_sentences(start, self.units)
+            self.original_texts = {u["text"] for u in start}
 
     def role(self, role: str, principles: list[str] | tuple[str, ...] = ()) -> tuple[str, str]:
         r"""Model family and effort that the project policy assigns to a role.
@@ -789,7 +826,8 @@ class Round:
         return out
 
     def pending(self, role: str, chunk: dict) -> list[str]:
-        r"""Sentence ids of a chunk without a current PASS verdict of a role.
+        r"""Sentence ids of a chunk that the declared coverage requires and that
+        lack a current PASS verdict of a role.
 
         Parameters
         ----------
@@ -804,8 +842,48 @@ class Round:
             Sentence ids in reading order.
         """
         cov = self.coverage(role, chunk)
+        skip = self.unchanged(chunk)
         return [sid for sid, key in chunk_keys(self.units, chunk).items()
-                if cov.get(key, ("", {}))[0] != "PASS"]
+                if sid not in skip and cov.get(key, ("", {}))[0] != "PASS"]
+
+    def unchanged(self, chunk: dict) -> set[str]:
+        r"""Sentence ids of a chunk that selective coverage leaves ungraded.
+
+        Parameters
+        ----------
+        chunk : dict
+            A manifest chunk.
+
+        Returns
+        -------
+        set of str
+            Ids of the sentences unchanged from the round-start text; empty
+            under exhaustive coverage.
+        """
+        first = sum(len(u["sentences"]) for u in self.units[:chunk["first_unit"] - 1])
+        return {sid for pos, (sid, _) in enumerate(chunk_sentences(self.units, chunk), first)
+                if pos in self.unchanged_at}
+
+    def untouched(self, chunk: dict) -> bool:
+        r"""Whether selective coverage asks nothing of a chunk.
+
+        Text outside any sentence, such as an equation that stands alone, is
+        covered by comparing the units of the chunk with the round-start text.
+
+        Parameters
+        ----------
+        chunk : dict
+            A manifest chunk.
+
+        Returns
+        -------
+        bool
+            True if every sentence is unchanged and every unit of the chunk
+            occurs in the round-start text.
+        """
+        sel = self.units[chunk["first_unit"] - 1:chunk["last_unit"]]
+        return (len(self.unchanged(chunk)) == len(chunk_sentences(self.units, chunk))
+                and all(u["text"] in self.original_texts for u in sel))
 
     def reviews(self) -> list[dict]:
         r"""All review records of the round.
@@ -1403,22 +1481,22 @@ def load_registry_terms(root: Path) -> list[dict]:
     return json.loads(path.read_text()).get("terms", [])
 
 
-#: The avoid_names scan of the sibling skill ``sc-qubit-vocabulary``.
+#: The avoid_names scan of the sibling skill ``physics-vocabulary``.
 VOCABULARY_CHECKER_CANDIDATES = (
-    str(Path(__file__).resolve().parents[2] / "sc-qubit-vocabulary" / "scripts"
-        / "check_note_vocabulary.py"),
-    "~/.agents/skills/sc-qubit-vocabulary/scripts/check_note_vocabulary.py",
-    "~/.claude/skills/sc-qubit-vocabulary/scripts/check_note_vocabulary.py",
+    str(Path(__file__).resolve().parents[2] / "physics-vocabulary" / "scripts"
+        / "check_vocabulary.py"),
+    "~/.agents/skills/physics-vocabulary/scripts/check_vocabulary.py",
+    "~/.claude/skills/physics-vocabulary/scripts/check_vocabulary.py",
 )
 
 
 def load_vocabulary_checker():
-    r"""Import the avoid_names scan of ``sc-qubit-vocabulary``, if installed.
+    r"""Import the avoid_names scan of ``physics-vocabulary``, if installed.
 
     Returns
     -------
     module or None
-        The module ``check_note_vocabulary``, or None when no candidate path
+        The module ``check_vocabulary``, or None when no candidate path
         of :data:`VOCABULARY_CHECKER_CANDIDATES` exists.
     """
     import importlib.util
@@ -1426,7 +1504,7 @@ def load_vocabulary_checker():
                  if Path(c).expanduser().exists()), None)
     if path is None:
         return None
-    spec = importlib.util.spec_from_file_location("check_note_vocabulary", path)
+    spec = importlib.util.spec_from_file_location("check_vocabulary", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -1435,9 +1513,9 @@ def load_vocabulary_checker():
 def banned_names(rnd: "Round") -> tuple[list[str], str]:
     r"""Uses of a banned name (an ``avoid_names`` string) in the live text.
 
-    The scan covers the whole project registry and the standard registry of
-    ``sc-qubit-vocabulary``, not only the entries given to a reviewer, and
-    reads the sentences as the reader does (no comments, labels, or paths).
+    The scan covers the whole project registry and any shared registry it
+    names, not only the entries given to a reviewer, and reads the sentences
+    as the reader does (no comments, labels, or paths).
     A string that is a banned name for one concept can be ordinary words
     elsewhere ("block diagonal"); such a hit is cleared by a terminology waiver
     of its sentence (``waive --roles terminology``), which names the reason.
@@ -1458,12 +1536,9 @@ def banned_names(rnd: "Round") -> tuple[list[str], str]:
         return [], ""
     vocab = load_vocabulary_checker()
     if vocab is None:
-        return [], ("banned-name scan skipped: sc-qubit-vocabulary is not installed; "
+        return [], ("banned-name scan skipped: physics-vocabulary is not installed; "
                     "search the text for the avoid_names of project-vocabulary.json by hand")
-    merged = vocab._annotated_merge(
-        vocab._load_registry(vocab.DEFAULT_REGISTRY, label="standard-vocabulary.json"),
-        vocab._load_registry(registry, label="project-vocabulary.json"))
-    terms = merged["terms"]
+    terms = vocab.load_registries(registry)["terms"]
     man = rnd.manifest
     waived = {key for rec in rnd.reviews()
               if rec.get("role") == "editor_waiver"
@@ -1860,6 +1935,10 @@ def cmd_prompt(args: argparse.Namespace) -> int:
             return fail(f"a close review is issued when nothing is pending; pending: {','.join(pending)}")
         if scope in ("full", "close"):
             covered = ids
+            if scope == "full" and role == "sentence_reviewer":
+                # The first review covers the declared coverage (scoped-review.md, rule 1).
+                skip = rnd.unchanged(chunk)
+                covered = [sid for sid in ids if sid not in skip] or ids
         else:
             explicit = [x for x in (args.touched or "").split(",") if x]
             covered = explicit or pending
@@ -2982,7 +3061,17 @@ def evaluate(rnd: Round) -> tuple[list[str], list[str], list[str]]:
         claim_checks(rnd, fixes, decisions)
         return fixes, decisions, notes
     records = rnd.reviews()
+    if session.get("language_coverage") == "selective":
+        if all(rnd.untouched(chunk) for chunk in chunks):
+            fixes.append("section: under selective coverage no sentence differs from the "
+                         "round-start text, so nothing was reviewed; edit the text, or declare "
+                         "exhaustive coverage to review it as it stands")
+        total = sum(len(u["sentences"]) for u in rnd.units)
+        notes.append(f"selective coverage: {len(rnd.unchanged_at)} of {total} sentences are "
+                     "unchanged from the round-start text and need no verdict")
     for chunk in chunks:
+        if rnd.untouched(chunk):
+            continue
         cid, text_hash = chunk["id"], rnd.chunk_hash(chunk)
         ids = [sid for sid, _ in chunk_sentences(rnd.units, chunk)]
         if len(ids) > MAX_SENTENCES and not (chunk.get("oversized") and
@@ -3002,7 +3091,8 @@ def evaluate(rnd: Round) -> tuple[list[str], list[str], list[str]]:
         closure = latest("editor_closure")
         if closure is None:
             fixes.append(f"{cid}: no editor_closure record for the current text")
-        keys = chunk_keys(rnd.units, chunk)
+        skip = rnd.unchanged(chunk)
+        keys = {sid: key for sid, key in chunk_keys(rnd.units, chunk).items() if sid not in skip}
         for role, label in (("sentence_reviewer", "sentence review"),
                             ("terminology_reviewer", "terminology-and-notation review")):
             cov = rnd.coverage(role, chunk)

@@ -58,6 +58,8 @@ class RoundCase(unittest.TestCase):
     source_text = SOURCE
     #: project vocabulary registry written at the root, or None for no registry
     registry = None
+    #: declared language coverage of the round
+    coverage = "exhaustive"
 
     def setUp(self):
         """Create the repository, initialise a round, and fill the templates."""
@@ -78,7 +80,7 @@ class RoundCase(unittest.TestCase):
             "## Sentence reviewer\n\n```text\nReview the sentences.\n```\n\n"
             "## Terminology-and-notation reviewer\n\n```text\nReview the names.\n```\n\n"
             "## Principle specialist\n\n```text\nSweep PRINCIPLE_IDS.\n```\n")
-        self.run_cli("init", "demo", "Manuscript/demo.tex")
+        self.run_cli("init", "demo", "Manuscript/demo.tex", "--coverage", self.coverage)
         self.folder = next((self.root / ".physics-edit" / "demo" / "runs").iterdir())
         self.manifest = cer.load_json(self.folder / "manifest.json")
 
@@ -165,6 +167,111 @@ class RoundCase(unittest.TestCase):
     def check(self):
         """Run ``check``; return (exit code, output)."""
         return self.run_cli("check", str(self.folder))
+
+
+class TestSelectiveCoverage(RoundCase):
+    """Under selective coverage the gate asks only for changed sentences."""
+
+    coverage = "selective"
+    source_text = r"""\section{Demo}
+\subsection{First}
+Alpha is the first sentence here. Beta is the second sentence here.
+
+Gamma is the third sentence here. Delta is the fourth sentence here.
+
+Epsilon is the fifth sentence here. Zeta is the sixth sentence here.
+
+\begin{equation}
+    a=b.
+\end{equation}
+
+\subsection{Second}
+Eta is the seventh sentence with $x=1$ inside. Theta is the eighth sentence here.
+Iota is the ninth sentence here.
+"""
+
+    def edit(self, old, new):
+        """Replace text of the source file."""
+        text = self.src.read_text()
+        self.assertIn(old, text)
+        self.src.write_text(text.replace(old, new))
+
+    def pending(self, chunk):
+        """Pending sentence ids of a chunk for the sentence reviewer."""
+        rnd = cer.find_round(self.root, str(self.folder))
+        return rnd.pending("sentence_reviewer", rnd.chunk(chunk))
+
+    def test_unedited_round_is_not_ready(self):
+        """A round that changed nothing reviewed nothing."""
+        self.fill_documents()
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("no sentence differs", out)
+
+    def test_only_the_changed_chunk_is_reviewed(self):
+        """A chunk with no changed sentence needs no closure and no close review."""
+        self.fill_documents()
+        self.edit("Theta is", "Theta was")
+        self.assertEqual(self.pending("c01"), [])
+        self.assertEqual(self.pending("c02"), ["S02", "S03"])
+        self.review_chunk("c02")
+        self.review_section()
+        self.run_cli("snapshot", str(self.folder))
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertIn("7 of 9 sentences", out)
+
+    def test_flag_on_unchanged_sentence_does_not_block(self):
+        """A close review may flag a sentence outside the coverage; the gate ignores it."""
+        self.fill_documents()
+        self.edit("Theta is", "Theta was")
+        self.review_chunk("c02")
+        snap = self.prefix("c02")
+        self.run_cli("record", str(self.folder), "--chunk", "c02", "--role", "sentence_reviewer",
+                     "--snapshot", snap, "--model", "sonnet", "--effort", "high", "--scope", "close",
+                     "--sentences", "S01=FIX", "--default-status", "PASS", "--summary", "s")
+        self.assertNotIn("c02:", self.check()[1].replace("c02: 2", ""))
+
+    def test_changed_sentence_without_verdict_blocks(self):
+        """Selective coverage still requires every changed sentence."""
+        self.fill_documents()
+        self.edit("Theta is", "Theta was")
+        self.assertIn("c02: no editor_closure", self.check()[1])
+
+    def test_changed_math_counts_as_a_change(self):
+        """Sentence keys hide math, so the comparison uses the raw sentence."""
+        self.edit("$x=1$", "$x=2$")
+        self.assertEqual(self.pending("c02"), ["S01", "S02"])
+
+    def test_moved_passage_counts_as_changed(self):
+        """Every sentence of a moved passage is touched, not only its first."""
+        passage = "Alpha is the first sentence here. Beta is the second sentence here.\n\n"
+        self.edit(passage, "")
+        self.edit("\\begin{equation}", passage + "\\begin{equation}")
+        self.assertEqual(self.pending("c01"), ["S01", "S05", "S06"])
+
+    def test_lone_equation_counts_as_a_change(self):
+        """An equation outside any sentence still opens its chunk."""
+        self.fill_documents()
+        self.edit("a=b.", "a=c.")
+        self.edit("Theta is", "Theta was")
+        self.assertIn("c01: no editor_closure", self.check()[1])
+
+    def test_first_sentence_review_covers_the_changed_sentences(self):
+        """The first sentence review judges the coverage; terminology sees the whole chunk."""
+        self.fill_documents()
+        self.edit("Theta is", "Theta was")
+        self.run_cli("record", str(self.folder), "--chunk", "c02", "--role", "editor_closure",
+                     "--snapshot", self.prefix("c02"), "--summary", "closed")
+        covered = {}
+        for role in ("sentence", "terminology"):
+            code, out = self.run_cli("prompt", str(self.folder), "--role", role, "--chunk", "c02",
+                                     "--prompts", str(self.prompts))
+            self.assertEqual(code, 0, out)
+            meta = cer.load_json(self.folder / "packets" / f"{last_packet(self.folder)}.json")
+            covered[role] = meta["covered_ids"]
+        self.assertEqual(covered, {"sentence": ["S02", "S03"],
+                                   "terminology": ["S01", "S02", "S03"]})
 
 
 class TestGate(RoundCase):
@@ -340,7 +447,7 @@ BANNED_REGISTRY = {"version": 1, "terms": [
      "avoid_names": ["coded qubit", "coded qubits"]}]}
 
 
-@unittest.skipIf(cer.load_vocabulary_checker() is None, "sc-qubit-vocabulary is not installed")
+@unittest.skipIf(cer.load_vocabulary_checker() is None, "physics-vocabulary is not installed")
 class TestBannedNames(RoundCase):
     """The gate scans the reviewed text for the avoid_names of the registry."""
 
@@ -370,6 +477,26 @@ class TestBannedNames(RoundCase):
                      "--roles", "terminology", "--reason", "ordinary words here")
         code, out = self.check()
         self.assertEqual(code, 0, out)
+
+
+@unittest.skipIf(cer.load_vocabulary_checker() is None, "physics-vocabulary is not installed")
+class TestBannedNamesOfSharedRegistry(RoundCase):
+    """The scan includes the shared registry that the project registry names."""
+
+    registry = {"version": 1, "terms": [], "shared_registry": "shared.json"}
+    source_text = TestBannedNames.source_text
+
+    def setUp(self):
+        """Write the shared registry next to the project registry."""
+        super().setUp()
+        (self.root / "shared.json").write_text(json.dumps(BANNED_REGISTRY))
+
+    def test_shared_banned_name_blocks(self):
+        """A banned name of the shared registry keeps the round from being ready."""
+        self.make_ready()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("banned name: c01 S01: 'coded qubit'", out)
 
 
 class TestScopedReview(RoundCase):

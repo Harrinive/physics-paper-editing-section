@@ -106,7 +106,8 @@
 - [ ] A one-sentence repair re-reviewed only that sentence and its successor;
       untouched sentences kept their verdicts.
 - [ ] Each chunk has one close review of each role, issued when nothing was
-      pending.
+      pending; under selective coverage a chunk with no changed sentence has
+      none.
 - [ ] The gate commands of the SKILL.md table ran at their moments; `check` was
       quoted in the report.
 - [ ] A FIX that the editor did not apply was recorded with `waive` and a reason,
