@@ -77,6 +77,13 @@ AXES = (
     "prose",
 )
 
+#: The limit on repairs in review-prompts.md, which every packet carries.
+REPAIR_RULE_RE = re.compile(r"^\*\*A repair is no heavier than its defect\.\*\*.*?(?=\n\n)", re.M | re.S)
+#: The project's file of rulings, at the repository root (skill: rulings-file.md).
+RULINGS_FILE = "RULINGS.md"
+#: Words of a paragraph that identify its line in ``paragraph-map.md``.
+OPENING_WORDS = 6
+
 #: Enumerations of ``session.md`` (skill: runtime-contract.md, disk-layout.md).
 SESSION_ENUMS = {
     "round_status": {"active", "needs_user", "ready", "closed", "superseded"},
@@ -192,6 +199,7 @@ CANON = (
     "physics-paper-principles/narrative.md",
     "physics-paper-principles/math.md",
     "physics-paper-principles/physical-lead.md",
+    "physics-paper-principles/names-and-symbols.md",
 )
 
 STATUSES = {"PASS", "FIX", "USER_DECISION"}
@@ -683,10 +691,12 @@ class Round:
         Returns
         -------
         str
-            SHA-256 over the section brief, the object ledger and the reviewer context.
+            SHA-256 over the section brief, the object ledger, the reviewer context
+            and the paragraph map.
         """
         parts = [(self.folder / n).read_text() if (self.folder / n).exists() else ""
-                 for n in ("section-brief.md", "object-ledger.md", "reviewer-context.md")]
+                 for n in ("section-brief.md", "object-ledger.md", "reviewer-context.md",
+                           "paragraph-map.md")]
         return sha("\n--\n".join(parts))
 
     def whole_hash(self) -> str:
@@ -884,9 +894,15 @@ TODO
 LEDGER_TEMPLATE = """# Object ledger
 revision: L1
 
-| Object | Category | Scope | Dimensions / scaling | Factors, normalization | First use | Payoff | Disposition |
-|---|---|---|---|---|---|---|---|
-| TODO | | | | | | | |
+| Object | Category | Scope | Dimensions / scaling | Factors, normalization | First use | Payoff | Central? | Disposition |
+|---|---|---|---|---|---|---|---|---|
+| TODO | | | | | | | | |
+"""
+
+PARAGRAPH_MAP_HEADER = """# Paragraph map
+One line per paragraph: its first words, ` :: `, and what the paragraph is for.
+Update a line when an edit changes the opening of its paragraph.
+
 """
 
 AUDIT_TEMPLATE = """# Completion audit
@@ -986,6 +1002,8 @@ def cmd_init(args: argparse.Namespace) -> int:
         risk=args.risk, profile="high_risk" if args.risk == "high" else "standard",
         scope="all_in_scope" if args.risk == "high" else "dependency_closure"))
     (folder / "section-brief.md").write_text(BRIEF_TEMPLATE)
+    (folder / "paragraph-map.md").write_text(PARAGRAPH_MAP_HEADER + "".join(
+        f"{paragraph_opening(u)} :: TODO\n" for u in units))
     (folder / "object-ledger.md").write_text(LEDGER_TEMPLATE)
     (folder / "completion-audit.md").write_text(AUDIT_TEMPLATE)
     save_json(folder / "source-boundaries.json", {
@@ -1267,6 +1285,83 @@ MATH_RE = re.compile(
     re.S)
 
 
+def paragraph_opening(unit: dict) -> str:
+    r"""First words of a unit, which identify it in the paragraph map.
+
+    Parameters
+    ----------
+    unit : dict
+        A unit of :func:`split_units`.
+
+    Returns
+    -------
+    str
+        The first ``OPENING_WORDS`` words of its prose.
+    """
+    words = re.sub(r"^\\item\s*", "", plain_text(unit["text"])).split()
+    return " ".join(words[:OPENING_WORDS])
+
+
+def paragraph_rows(rnd: "Round", units: list[dict]) -> str:
+    r"""Lines of the paragraph map for some units.
+
+    A line is found by the first words of its paragraph, so a stale line is
+    reported as missing and never shown for the wrong paragraph.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+    units : list of dict
+        The units of a chunk, or all units.
+
+    Returns
+    -------
+    str
+        One line per unit; empty for a round without a paragraph map.
+    """
+    path = rnd.folder / "paragraph-map.md"
+    if not path.exists():
+        return ""
+    purpose = {}
+    for line in path.read_text().splitlines():
+        opening, sep, what = line.partition(" :: ")
+        if sep:
+            purpose[opening.strip()] = what.strip()
+    rows = []
+    for unit in units:
+        opening = paragraph_opening(unit)
+        rows.append(f"- {opening} ...: {purpose.get(opening, '(no line in paragraph-map.md)')}")
+    return "\n".join(rows)
+
+
+def show_rulings(rnd: "Round", force: bool = False) -> None:
+    r"""Print the project's rulings for the agent that weighs the findings.
+
+    The whole file is printed once per round and again when it changes;
+    afterwards one line says so.  No reviewer packet carries it.
+
+    Parameters
+    ----------
+    rnd : Round
+        A loaded round.
+    force : bool, optional
+        Print the file even if it was already shown (after a resume).
+    """
+    path = rnd.root / RULINGS_FILE
+    if not path.exists():
+        return
+    text = path.read_text()
+    marker = rnd.folder / "rulings-shown.txt"
+    if not force and marker.exists() and marker.read_text().strip() == sha(text):
+        print(f"{RULINGS_FILE}: already shown in this round, unchanged")
+        return
+    print(f"--- {RULINGS_FILE}: settled decisions; weigh every finding against them ---")
+    print(text)
+    print(f"--- end of {RULINGS_FILE} ---")
+    marker.write_text(sha(text) + "\n")
+
+
 def plain_text(raw: str) -> str:
     r"""Prose of a raw sentence: no math, no references, no markup braces.
 
@@ -1410,9 +1505,11 @@ ROLE_HEADINGS = {"holistic_reviewer": "Holistic reviewer", "formal_reviewer": "F
 ROLE_CANON = {"holistic_reviewer": ("SKILL.md", "narrative.md", "physical-lead.md", "math.md"),
               "formal_reviewer": ("SKILL.md", "math.md", "physical-lead.md"),
               "sentence_reviewer": ("SKILL.md", "sentence.md"),
-              "terminology_reviewer": ("SKILL.md", "sentence.md", "physical-lead.md"),
+              "terminology_reviewer": ("SKILL.md", "sentence.md", "names-and-symbols.md",
+                                       "physical-lead.md"),
               "principle_specialist": ("SKILL.md", "sentence.md")}
-SPECIALIST_EXTRA_CANON = {"P05": "narrative.md", "P13": "narrative.md", "P07": "narrative.md",
+SPECIALIST_EXTRA_CANON = {"P03": "names-and-symbols.md", "P15": "names-and-symbols.md",
+                          "P05": "narrative.md", "P13": "narrative.md", "P07": "narrative.md",
                           "P11": "physical-lead.md", "P12": "math.md"}
 REPORT_SCHEMA = """\
 Write your report as one JSON file (UTF-8) at REPORT_PATH, and nowhere else.
@@ -1425,14 +1522,16 @@ Do not edit the manuscript or any other file.
   "terminology_notation": "PASS | FIX | USER_DECISION", // terminology role only
   "principle_hits": {"P01": "FIX"},                    // sentence role: P01..P16
   "findings": [
-    {"sentence": "S03", "principle": "P01", "severity": "must | optional",
+    {"sentence": "S03", "principle": "P01", "severity": "must | optional | story_check",
      "evidence": "one or two sentences", "repair": "exact proposed wording"}
   ],
   "summary": "one line"
 }
 Use only PASS, FIX, USER_DECISION as verdicts. A finding of severity "optional"
 never needs a repair; when every finding on a sentence is optional, the verdict of
-that sentence is PASS. A specialist returns "findings" and "summary" only."""
+that sentence is PASS. A finding of severity "story_check" asks the editor whether the
+story needs a claim; it has no repair and alone leaves the sentence at PASS. A
+specialist returns "findings" and "summary" only."""
 
 
 def find_prompts(arg: str | None) -> Path:
@@ -1483,7 +1582,8 @@ def role_prompt(path: Path, role: str) -> str:
     block = re.search(r"```text\n(.*?)\n```", text[m.end():], re.S)
     if not block:
         raise ValueError(f"no fenced prompt under '{ROLE_HEADINGS[role]}' in {path}")
-    return block.group(1)
+    rule = REPAIR_RULE_RE.search(text)
+    return block.group(1) + ("\n\n" + rule.group(0).strip() if rule else "")
 
 
 def ledger_rows(ledger: str, text: str) -> str:
@@ -1637,6 +1737,8 @@ def issue_packet(rnd: Round, chunk: dict, role: str, scope: str, covered: list[s
     names = list(ROLE_CANON[role])
     if role == "principle_specialist":
         names += [SPECIALIST_EXTRA_CANON[p] for p in principles if p in SPECIALIST_EXTRA_CANON]
+    if any("\\caption" in t for t in raw + before + after):
+        names.append("caption.md")
     canon = [str(skill_root / n) for n in dict.fromkeys(names)]
     prompt = role_prompt(prompts, role).replace("PRINCIPLE_IDS", ",".join(principles))
 
@@ -1675,6 +1777,9 @@ def issue_packet(rnd: Round, chunk: dict, role: str, scope: str, covered: list[s
         lines += ["", "## Reference material (the human reader does not have it; "
                   "anything taken from here is a lookup)"]
     lines += ["", "## Section brief", "", brief]
+    purposes = paragraph_rows(rnd, rnd.units[chunk["first_unit"] - 1:chunk["last_unit"]])
+    if purposes:
+        lines += ["", "## What each paragraph of this chunk is for", "", purposes]
     if context_file.exists():
         lines += ["", "## Reviewer context (rulings of the owner and conventions)", "",
                   context_file.read_text()]
@@ -1853,6 +1958,7 @@ def cmd_digest(args: argparse.Namespace) -> int:
         Exit code.
     """
     rnd = find_round(root_of(args), args.round)
+    show_rulings(rnd, args.rulings)
     man = rnd.manifest
     records = [r for r in rnd.reviews()
                if r.get("findings") and r.get("context_revision") == man["context_revision"]
@@ -1882,7 +1988,8 @@ def cmd_digest(args: argparse.Namespace) -> int:
         if not rows:
             continue
         print(f"{chunk['id']}:")
-        for sid, role, f in sorted(rows, key=lambda r: (r[2].get("severity") != "must", r[0])):
+        order = {"story_check": 0, "must": 1}
+        for sid, role, f in sorted(rows, key=lambda r: (order.get(r[2].get("severity"), 2), r[0])):
             tag = f"{role.split('_')[0]}"
             print(f"  {sid} {tag:<11} {f.get('principle', '-'):<4} {f.get('severity', '?'):<8} "
                   f"{(f.get('evidence') or '')[:150]}")
@@ -2176,7 +2283,10 @@ def issue_stage_e_packet(rnd: Round, role: str, prompts: Path) -> dict:
     sentences = global_sentences(rnd)
     plain = "\n".join(checks_plain(t) for _, _, t in sentences)
     skill_root = prompts.parent.parent / "physics-paper-principles"
-    canon = [str(skill_root / n) for n in dict.fromkeys(ROLE_CANON[role])]
+    names = list(ROLE_CANON[role])
+    if role == "holistic_reviewer" and any("\\caption" in t for _, _, t in sentences):
+        names.append("caption.md")
+    canon = [str(skill_root / n) for n in dict.fromkeys(names)]
     scope = rnd.session.get("formal_review_scope", "all_in_scope")
     prompt = role_prompt(prompts, role).replace("FORMAL_REVIEW_SCOPE", scope)
     report = folder / f"{pid}.report.json"
@@ -2205,6 +2315,9 @@ def issue_stage_e_packet(rnd: Round, role: str, prompts: Path) -> dict:
     if role == "holistic_reviewer":
         lines += ["", PATTERN_HEADING, "", pattern_report(rnd)]
     lines += ["", "## Section brief", "", (rnd.folder / "section-brief.md").read_text()]
+    purposes = paragraph_rows(rnd, rnd.units)
+    if purposes:
+        lines += ["", "## What each paragraph is for", "", purposes]
     if context_file.exists():
         lines += ["", "## Reviewer context (rulings of the owner and conventions)", "",
                   context_file.read_text()]
@@ -2406,6 +2519,7 @@ def cmd_stage_e(args: argparse.Namespace) -> int:
             "context_revision": rnd.manifest["context_revision"],
             "ledger_revision": rnd.manifest["ledger_revision"],
             "clusters": clusters, "local": local})
+        show_rulings(rnd)
         print(f"Stage E round {number} merged: {len(clusters)} clusters, "
               f"{sum(c['must'] for c in clusters)} must be ruled, {len(local)} local items "
               "(repair those in the chunk loop)")
@@ -2840,6 +2954,15 @@ def evaluate(rnd: Round) -> tuple[list[str], list[str], list[str]]:
                 fixes.append(f"{path.name} still contains TODO")
             if read_keys(path).get(key) != want:
                 fixes.append(f"{path.name}: {key} differs from manifest.json ({want})")
+    purposes = folder / "paragraph-map.md"
+    if purposes.exists():
+        text = purposes.read_text()
+        if "TODO" in text:
+            fixes.append("paragraph-map.md still contains TODO")
+        missing = paragraph_rows(rnd, rnd.units).count("(no line in paragraph-map.md)")
+        if missing:
+            notes.append(f"paragraph-map.md has no line for {missing} paragraphs: "
+                         "update the lines of paragraphs whose opening changed")
     audit = folder / "completion-audit.md"
     if audit.exists():
         m = re.search(r"Deviations from the skill:\s*(.*)", audit.read_text())
@@ -3086,6 +3209,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("round")
     p.add_argument("--chunk")
     p.add_argument("--packet")
+    p.add_argument("--rulings", action="store_true",
+                   help="print the project's rulings again, for example after a resume")
     p.set_defaults(func=cmd_digest)
 
     p = sub.add_parser("prompt", help="build a reviewer packet and print the launch line")

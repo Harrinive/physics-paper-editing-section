@@ -102,7 +102,7 @@ class RoundCase(unittest.TestCase):
 
     def fill_documents(self):
         """Replace the TODO templates and flip the attestations."""
-        for name in ("section-brief.md", "object-ledger.md"):
+        for name in ("section-brief.md", "object-ledger.md", "paragraph-map.md"):
             path = self.folder / name
             path.write_text(path.read_text().replace("TODO", "done"))
         audit = self.folder / "completion-audit.md"
@@ -915,3 +915,101 @@ class TestStageE(RoundCase):
         path = next((self.folder / "reviews").glob("section-holistic_reviewer-*.json"))
         self.assertEqual(cer.load_json(path)["findings"], [])
         self.assertEqual(self.check()[0], 0)
+
+
+class TestParagraphMapAndRulings(RoundCase):
+    """What the editor and the reviewers get about the story and the rulings."""
+
+    def first_packet(self, role="sentence"):
+        """Issue a packet for the first chunk; return its text."""
+        self.fill_documents()
+        chunk = self.manifest["chunks"][0]["id"]
+        self.run_cli("record", str(self.folder), "--chunk", chunk, "--role", "editor_closure",
+                     "--snapshot", self.prefix(chunk), "--summary", "closed")
+        code, out = self.run_cli("prompt", str(self.folder), "--role", role, "--chunk", chunk,
+                                 "--prompts", str(self.prompts))
+        self.assertEqual(code, 0, out)
+        return (self.folder / "packets" / f"{last_packet(self.folder)}.md").read_text()
+
+    def test_init_writes_one_line_per_paragraph(self):
+        """Each unit has a line that starts with its first words."""
+        text = (self.folder / "paragraph-map.md").read_text()
+        self.assertIn("The first claim is a sentence :: TODO", text)
+        self.assertIn("The third claim sits in another :: TODO", text)
+
+    def test_open_map_blocks_the_round(self):
+        """A map with a TODO keeps the round open."""
+        code, out = self.check()
+        self.assertNotEqual(code, 0)
+        self.assertIn("paragraph-map.md still contains TODO", out)
+
+    def test_packet_carries_only_the_lines_of_its_chunk(self):
+        """The first chunk sees its own paragraphs, not those of the second subsection."""
+        path = self.folder / "paragraph-map.md"
+        path.write_text(path.read_text().replace("sentence :: TODO", "sentence :: states the claim"))
+        packet = self.first_packet()
+        self.assertIn("## What each paragraph of this chunk is for", packet)
+        self.assertIn("states the claim", packet)
+        self.assertNotIn("The third claim sits in another ...", packet)
+
+    def test_changed_opening_is_reported_not_misread(self):
+        """After the opening changes, the line is missing, and a note says so."""
+        self.src.write_text(self.src.read_text().replace(
+            "The first claim is a sentence", "One new claim is a sentence"))
+        self.fill_documents()
+        self.assertIn("paragraph-map.md has no line for 1 paragraphs", self.check()[1])
+
+    def test_rulings_are_not_in_a_packet(self):
+        """Reviewers stay cold."""
+        (self.root / "RULINGS.md").write_text("## Subject\n- A settled decision.\n")
+        self.assertNotIn("A settled decision", self.first_packet())
+
+    def test_digest_prints_rulings_once_and_on_request(self):
+        """The file is shown once, again when changed or asked for."""
+        rulings = self.root / "RULINGS.md"
+        rulings.write_text("## Subject\n- A settled decision.\n")
+        self.assertIn("A settled decision", self.run_cli("digest", str(self.folder))[1])
+        second = self.run_cli("digest", str(self.folder))[1]
+        self.assertNotIn("A settled decision", second)
+        self.assertIn("already shown", second)
+        self.assertIn("A settled decision",
+                      self.run_cli("digest", str(self.folder), "--rulings")[1])
+        rulings.write_text("## Subject\n- A revised decision.\n")
+        self.assertIn("A revised decision", self.run_cli("digest", str(self.folder))[1])
+
+    def test_no_rulings_file_changes_nothing(self):
+        """A project without the file sees no line about it."""
+        self.assertNotIn("RULINGS", self.run_cli("digest", str(self.folder))[1])
+
+    def test_story_check_comes_first_in_the_digest(self):
+        """A story check is listed before the other findings and keeps the verdict."""
+        self.fill_documents()
+        chunk = self.manifest["chunks"][0]["id"]
+        self.first_packet()
+        pid = last_packet(self.folder)
+        meta = cer.load_json(self.folder / "packets" / f"{pid}.json")
+        first = meta["covered_ids"][0]
+        report = {"packet": pid, "summary": "r", "principle_hits": {},
+                  "sentence_results": {s: "PASS" for s in meta["covered_ids"]},
+                  "findings": [
+                      {"sentence": first, "principle": "P06", "severity": "optional",
+                       "evidence": "taste", "repair": "x"},
+                      {"sentence": first, "principle": "P16", "severity": "story_check",
+                       "evidence": "is this number needed here", "repair": ""}]}
+        Path(meta["report_file"]).write_text(json.dumps(report))
+        code, out = self.run_cli("record", str(self.folder), "--packet", pid, "--report",
+                                 meta["report_file"], "--model", "sonnet", "--effort", "high")
+        self.assertEqual(code, 0, out)
+        out = self.run_cli("digest", str(self.folder), "--chunk", chunk)[1]
+        self.assertLess(out.index("story_check"), out.index("optional"))
+
+    def test_every_packet_carries_the_limit_on_repairs(self):
+        """The rule outside the fenced prompts reaches the reviewer."""
+        self.prompts.write_text("**A repair is no heavier than its defect.** One place.\n\n"
+                                + self.prompts.read_text())
+        self.assertIn("A repair is no heavier than its defect", self.first_packet())
+
+    def test_terminology_packet_names_the_new_canon_file(self):
+        """The terminology reviewer reads names-and-symbols.md."""
+        self.assertIn("names-and-symbols.md", self.first_packet("terminology"))
+

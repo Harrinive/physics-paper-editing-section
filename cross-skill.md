@@ -57,7 +57,7 @@ orchestrator-versus-author split in version 2.
 ## Completion mapping
 
 Chunk `completion: ready` maps to manifest status `ready`. `needs_fix` maps to
-`editing`; `needs_user` maps to `needs_user` and pauses the whole round when it
+`editing`; `needs_user` maps to `needs_user` and keeps the round open when it
 represents a newly discovered source-level scientific defect. The section is
 ready only after Stage E is adjudicated (no must cluster open or deferred)
 and the declared language coverage is complete on the current candidate

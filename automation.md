@@ -4,8 +4,10 @@ Automation may locate the section state and detect stale snapshots, but it must
 not choose scientific meaning or alter routing silently.
 
 If the round is `needs_user` because of a newly discovered source-level
-scientific defect, automation may refresh evidence but must not resume editing
-other chunks until the author responds.
+scientific defect, automation may refresh evidence and continue the chunks that
+do not depend on the defect
+([quality-contract.md](../physics-paper-editing/quality-contract.md)). It does
+not close the round until the author responds.
 
 On resume:
 

@@ -36,26 +36,32 @@ Before moving paragraphs or drafting prose:
 
 1. Write the section physics spine: situation → mechanism → relevant quantities
    → principal result. The result line names every quantity the section states
-   exactly; any other number in the section is support or illustration, stated
-   through its mechanism with a pointer
+   exactly as a result, a comparison, or a condition, in a list beside the spine
+   if there are many; any other number is support or illustration, stated through
+   its mechanism
    ([narrative.md](../physics-paper-principles/narrative.md), level of
    precision).
-2. Build the global object ledger using
+2. Write the paragraph map: one line per paragraph, what that paragraph is for.
+   For an appendix, the brief also says whether it supports the main text or
+   tells a new story.
+   Chunk reviewers and the editor use it for what one sentence cannot show:
+   whether a sentence or clause serves the story.
+3. Build the global object ledger using
    [physical-lead.md](../physics-paper-principles/physical-lead.md).
-3. Record every object's category, scope, units/scaling, included factors,
-   normalization, first use, later payoff, and disposition.
-4. Identify the section's terminology and notation sources, including any
+4. Record every object's category, scope, units/scaling, included factors,
+   normalization, first use, later payoff, whether it is central, and disposition.
+5. Identify the section's terminology and notation sources, including any
    project vocabulary registry and established manuscript symbols.
-5. Identify missing links, duplicate objects, conflicting normalizations,
+6. Identify missing links, duplicate objects, conflicting normalizations,
    unnecessary synonyms or aliases, and unresolved scientific choices. Run the
    delete, question, and names tests of
    [narrative.md](../physics-paper-principles/narrative.md) ("Connecting
    sentences carry physics") on every opening, roadmap, and wrap-up.
-6. Run the convention-merge check
+7. Run the convention-merge check
    ([physical-lead.md](../physics-paper-principles/physical-lead.md))
    section-wide, not per chunk — chunk-level review sees only a local slice
    of a symbol's usage count.
-7. If the section contains parallel bullets, paragraphs, derivations, or
+8. If the section contains parallel bullets, paragraphs, derivations, or
    subsections, pick one shared presentation template for them (parallel-unit
    alignment in [narrative.md](../physics-paper-principles/narrative.md))
    before chunking, so independently edited chunks don't drift apart for no
@@ -64,15 +70,14 @@ Before moving paragraphs or drafting prose:
    Evidence: `python3 scripts/check_prose_patterns.py <file> [--registry project-vocabulary.json]`,
    whose whole-text report also lists restated names and caption sentences
    repeated in the text.
-8. Make structure-level moves only after the physics architecture is coherent.
+9. Make structure-level moves only after the physics architecture is coherent.
 
 An unresolved essential meaning becomes `needs_user`; do not ask a reviewer to
 guess it.
 
-Any newly discovered scientific defect in the author's source that is outside
-the authorized objective also makes the whole round `needs_user`. Stop other
-chunk work until the author decides whether to expand the scope or supplies the
-intended science.
+A newly discovered scientific defect in the author's source that is outside the
+authorized objective also leaves the round `needs_user`, under the rule in
+[quality-contract.md](../physics-paper-editing/quality-contract.md).
 
 ## Stage C — Argument-sized chunks
 
@@ -104,7 +109,7 @@ For each pending chunk:
 4. Reconcile every new or changed object with the global ledger before writing.
 5. Apply canon closure from the micro skill. Every changed or newly written
    sentence receives all 16 sentence checks; every other applicable canon
-   principle is also mandatory.
+   principle is also checked.
 6. Under `reviewed`, run one whole-unit sentence reviewer and one
    terminology-and-notation reviewer on the first draft of the chunk, then every
    principle specialist triggered by the sentence hit map. Apply the accepted
@@ -112,7 +117,9 @@ For each pending chunk:
    neighbours as context
    ([scoped-review.md](../physics-paper-editing/scoped-review.md)). The
    packets of both reviewers carry the whole paragraph before the chunk and
-   the advisory pattern report for the chunk. When no
+   the advisory pattern report for the chunk, and the lines of the paragraph
+   map for the chunk. The editor rules each `story_check` from those lines,
+   after the project's rulings. When no
    sentence is pending, run one whole-chunk sentence review and one whole-chunk
    terminology-and-notation review of the final text (the close of the chunk).
    The sentence and terminology reviewers receive no source text.
@@ -129,8 +136,8 @@ For each pending chunk:
    sentence after it stale; a dependency change makes the affected results
    stale. A stale verdict triggers a scoped recheck, not a whole-chunk one.
    A sentence flagged a third time goes to the author as a decision.
-10. Continue to another independent chunk only while no source-level scientific
-    defect is awaiting the author.
+10. A source-level scientific defect awaiting the author holds only the chunks
+    that depend on it; the other chunks continue.
 
 ## Stage E — Section integration
 
@@ -158,8 +165,8 @@ the gate does not ask for a reviewer's PASS on the final text.
    overlap into clusters. A cluster must be ruled when one reviewer called it a
    claim defect (a wrong or unsupported statement, a missing premise, a broken
    definition), when two different reviewers raised it, or when a reviewer marked
-   it a `user_decision`. A global or style finding that only one reviewer raised
-   is listed for the owner and does not block.
+   it a `user_decision`. A global or style finding that only one reviewer raised,
+   a reader's gap among them, is listed for the owner and does not block.
 4. **Adjudicate.** The main agent rules each must cluster with `stage-e rule`:
    `applied` (repair through the chunk loop; the gate accepts it only when the
    cluster's sentences changed), `waived` with a reason (the text is right, or the

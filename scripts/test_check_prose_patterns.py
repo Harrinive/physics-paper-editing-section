@@ -19,6 +19,27 @@ def run(text, fmt="latex", registry=None, **kw):
     return cpp.analyze(text, fmt, reg, **kw)
 
 
+class TestReferences(unittest.TestCase):
+    """Items that the text refers to again and again."""
+
+    TEXT = ("See Fig.~\\ref{fig:a}.\nAgain Fig.~\\ref{fig:a} and App.~\\ref{app:b}.\n"
+            "Once more Fig.~\\ref{fig:a}, with Eq.~\\eqref{eq:c}, Eq.~\\eqref{eq:c}, "
+            "and Eq.~\\eqref{eq:c}.\n% Fig.~\\ref{fig:a} in a comment\n")
+
+    def test_three_references_are_listed_and_equations_are_not(self):
+        """A figure cited three times is reported; equations and comments do not count."""
+        found = run(self.TEXT)["references"]
+        self.assertEqual([(f["label"], f["count"], f["lines"]) for f in found],
+                         [("fig:a", 3, [1, 2, 3])])
+
+    def test_a_restricted_report_has_no_counts(self):
+        """Counts over the whole text are not shown for one chunk."""
+        self.assertNotIn("references", cpp.restrict(run(self.TEXT), 1, 1))
+        self.assertIn("is each repeat needed", cpp.format_report(run(self.TEXT)))
+        self.assertNotIn("is each repeat needed",
+                         cpp.format_report(cpp.restrict(run(self.TEXT), 1, 1)))
+
+
 class TestRepeatedPhrases(unittest.TestCase):
     """Given information restated in full."""
 

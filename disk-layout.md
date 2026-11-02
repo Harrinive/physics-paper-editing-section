@@ -11,6 +11,7 @@
         ├── source-boundaries.json
         ├── candidate-snapshot.txt
         ├── section-brief.md
+        ├── paragraph-map.md         # one line per paragraph: what it is for
         ├── object-ledger.md
         ├── manifest.json
         ├── completion-audit.md
@@ -53,11 +54,18 @@ Store:
 Store the section purpose, promised result, physics spine, neighboring context,
 and manuscript conventions. Do not duplicate the full principles files.
 
+## paragraph-map.md
+
+One line per paragraph: its first words, ` :: `, and what the paragraph is for.
+`init` writes the first words. A packet carries the lines of its chunk, matched by
+those first words, so update a line when an edit changes the opening of its
+paragraph.
+
 ## object-ledger.md
 
 For every story-bearing object, store role/category, scope, dimensions/scaling,
-included factors, normalization, first use, later payoff, and current
-disposition. Give the ledger a content hash or monotonic revision. Record each
+included factors, normalization, first use, later payoff, whether it is central,
+and current disposition. Give the ledger a content hash or monotonic revision. Record each
 deliberate change, the affected chunks, and the resulting revision.
 
 ## manifest.json

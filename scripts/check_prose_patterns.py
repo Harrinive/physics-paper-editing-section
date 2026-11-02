@@ -580,6 +580,39 @@ def caption_overlap(paras: list[dict], min_overlap: int = 8) -> list[dict]:
     return out
 
 
+def references(text: str, fmt: str = "latex", min_refs: int = 3) -> list[dict]:
+    r"""Items that the text refers to several times.
+
+    Equations are left out: a repeated reference to a figure, table, section or
+    appendix is the one a reader notices.
+
+    Parameters
+    ----------
+    text : str
+        Raw file content.
+    fmt : str, optional
+        ``"latex"`` or ``"markdown"``; Markdown has no references.
+    min_refs : int, optional
+        Fewest references that are reported.
+
+    Returns
+    -------
+    list of dict
+        One finding per item, with ``label``, ``count`` and ``lines``.
+    """
+    if fmt != "latex":
+        return []
+    found: dict[str, list[int]] = {}
+    for no, line in enumerate(strip_comments(text, fmt).splitlines(), 1):
+        for match in REF_RE.finditer(line):
+            for label in match.group(1).split(","):
+                label = label.strip()
+                if not label.lower().startswith("eq"):
+                    found.setdefault(label, []).append(no)
+    return [{"label": k, "count": len(v), "lines": v}
+            for k, v in sorted(found.items()) if len(v) >= min_refs]
+
+
 def summary(paras: list[dict]) -> dict:
     r"""Opening-word share and connective counts of the whole text.
 
@@ -622,12 +655,13 @@ def analyze(text: str, fmt: str = "latex", registry: list[tuple[str, ...]] | Non
     -------
     dict
         ``repeated_phrases``, ``template_runs``, ``caption_overlap`` (lists of
-        findings) and ``summary``.
+        findings), ``references`` and ``summary``.
     """
     paras = paragraphs_of(text, fmt)
     return {"repeated_phrases": repeated_phrases(paras, registry or [], min_repeats),
             "template_runs": template_runs(paras, min_run),
             "caption_overlap": caption_overlap(paras, min_overlap),
+            "references": references(text, fmt),
             "summary": summary(paras)}
 
 
@@ -646,14 +680,16 @@ def restrict(result: dict, first: int, last: int) -> dict:
     dict
         The same structure with only the findings whose paragraph (or, for a
         caption overlap, whose caption or citing paragraph) meets the range;
-        the summary is dropped.
+        the summary and the references, which are counted over the whole
+        text, are dropped.
     """
     def meets(f: dict) -> bool:
         """Whether a finding touches the range."""
         hit = f["start"] <= last and f["end"] >= first
         return hit or ("caption_start" in f and first <= f["caption_start"] <= last)
 
-    return {k: [f for f in v if meets(f)] for k, v in result.items() if k != "summary"}
+    return {k: [f for f in v if meets(f)] for k, v in result.items()
+            if k not in ("summary", "references")}
 
 
 def span(f: dict) -> str:
@@ -718,6 +754,13 @@ def format_report(result: dict) -> str:
                      f"{span(f)}: {f['length']} shared words: \"{f['shared']}\"")
     if not result["caption_overlap"]:
         lines.append("  (none)")
+    if "references" in result:
+        lines.append("Items referred to three times or more (is each repeat needed?)")
+        for f in result["references"]:
+            where = ", ".join(f"L{n}" for n in f["lines"])
+            lines.append(f"  {f['label']}: {f['count']} times ({where})")
+        if not result["references"]:
+            lines.append("  (none)")
     return "\n".join(lines)
 
 

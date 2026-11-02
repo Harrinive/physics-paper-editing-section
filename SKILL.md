@@ -32,6 +32,8 @@ snapshot; see [disk-layout.md](disk-layout.md).
 4. Before chunk editing, read [chunk-contract.md](chunk-contract.md) and the
    active micro [SKILL.md](../physics-paper-editing/SKILL.md).
 5. Read [scope-and-verifiers.md](scope-and-verifiers.md) for Stage B or E review.
+   When the project has a rulings file, also read
+   [rulings-file.md](rulings-file.md).
 6. Before completion, read [test-checklist.md](test-checklist.md).
 
 ## Governing design
@@ -50,15 +52,16 @@ than violating a definition or equation boundary.
 
 Every chunk must preserve the section's established terminology and notation.
 Chunk assembly may not introduce a new clipped label, mathematical alias, or
-duplicate name that was absent from the source and global context unless it is
-necessary, defined, and reconciled deliberately.
+duplicate name that was absent from the source and global context unless
+[names-and-symbols.md](../physics-paper-principles/names-and-symbols.md) allows it
+and it is reconciled deliberately.
 
 ## Stages
 
 | Stage | Outcome |
 |---|---|
 | A | Version-2 round, immutable source, edit intent, language coverage, role-to-model policy, section scope |
-| B | Section physics spine, global object ledger, structural plan |
+| B | Section physics spine, paragraph map, global object ledger, structural plan |
 | C | Source-format-safe argument chunks, normally at most 12 sentences, with a defined oversized-unit fallback |
 | D | Direct or reviewed editing per chunk; global ledger updated deliberately |
 | E | Section-wide physics-story, object-consistency, and formal review: at most two rounds of independent blind reviewers, combined and adjudicated |
@@ -124,7 +127,11 @@ reviewer of the chunk. Packets for the sentence and terminology reviewers
 also carry the whole paragraph before the chunk and the advisory report of
 `scripts/check_prose_patterns.py` for the chunk; Stage E holistic packets
 carry the whole-text report. Reviewers confirm or clear its candidates; the
-report never blocks a round by itself.
+report never blocks a round by itself. Each packet carries the lines of the
+paragraph map for its chunk (Stage E: the whole map). When the repository has
+`RULINGS.md`, `digest` and `stage-e merge` print it once per round, for the agent
+that weighs the findings; `digest --rulings` prints it again after a resume. No
+reviewer packet carries it.
 
 Commands: `policy`, `init`, `chunks`, `rechunk`, `pending`, `prompt`, `record`,
 `digest`, `waive`, `stage-e`, `status`, `snapshot`, `defect`, `revision`, `gc`, `check`
@@ -133,19 +140,19 @@ program refuses the next step or `check` fails without it.
 
 | # | Moment | Run | |
 |---|---|---|---|
-| 1 | Start of a round | `policy show` (if missing: ask the owner, then `policy set`), `init`, fill brief and ledger, `check` | must: policy, `init`; should: `check` (only brief, ledger and attestations should be open) |
-| 2 | Resume in a new session or after compaction | `status`, `pending`, `check` | must. `status` lists packets issued but not recorded: record or drop them before launching new ones |
+| 1 | Start of a round | `policy show` (if missing: ask the owner, then `policy set`), `init`, fill brief, paragraph map and ledger, `check` | must: policy, `init`; should: `check` (only brief, paragraph map, ledger and attestations should be open) |
+| 2 | Resume in a new session or after compaction | `status`, `pending`, `digest --rulings`, `check` | must. `status` lists packets issued but not recorded: record or drop them before launching new ones |
 | 3 | A bullet is split, merged, moved or added | `rechunk`, `chunks` | must. A chunk with at least half of its sentences already reviewed keeps its id |
 | 4 | After each edit batch, once the editor's own canon check is done | `record --role editor_closure`, then `digest` (no accepted finding may be unapplied), `pending`, `prompt` | must: the closure (`prompt` refuses without it). A FIX that you decide not to apply: `waive --reason` |
 | 5 | Launching a reviewer | the model and effort that `prompt` prints | must |
 | 6 | A reviewer result | `record --packet pNNN --report FILE --model M --effort E` | must. It enforces model and effort, revision, and a verdict for every scoped sentence. Sentences that changed since the packet was issued are reported, not rejected: their verdicts simply no longer match |
 | 7 | A sentence review with principle hits `FIX` | `prompt --role specialist --principles ...` before the repair | must (the gate owes a specialist per hit) |
-| 8 | A batch is recorded | `pending`, `digest` | should |
+| 8 | A batch is recorded | `pending`, `digest`; decide every `story_check`, then edit under row 4 | should |
 | 9 | Nothing pending in a chunk | `prompt --scope close` for the sentence and the terminology reviewer, then repairs by rows 4 to 8 | must: `check` needs a close review per role |
 | 10 | After the last edit | `snapshot` | must (`check` fails until the snapshot equals the live text) |
 | 11 | Before Stage E | `check` shows no line that begins with a chunk id | must: `prompt --role holistic\|formal` refuses otherwise |
 | 12 | A Stage E round (at most two) | `prompt --role holistic` and `--role formal` once per reviewer (3 per role in round 1, 2 in round 2; the program refuses more), each launched as a new agent that gets only the printed line; `record --packet` for each; `stage-e merge`; `stage-e rule --cluster K.. --as applied\|waived\|deferred --reason ...` | must. A cluster is must when one reviewer calls it a claim defect or two reviewers raise it; `applied` is accepted only when its sentences changed; round 2 is required when round 1 applied a claim or global cluster; there is no round 3; one-sentence wording items are `local` and go back to the chunk loop |
-| 13 | An owner ruling, a Stage E repair, or a move between chunks | `defect rule` if a defect was logged; `pending` for the blast radius; `revision --yes` only if the spine, the ledger or the conventions that reviewers judge against changed | must for `defect rule`. A bump prints and discards every current verdict and rejects packets still out. An edit of the ledger, the brief or `reviewer-context.md` without a bump is only warned about when a packet is recorded |
+| 13 | An owner ruling, a Stage E repair, or a move between chunks | `defect rule` if a defect was logged; `pending` for the blast radius; update the rulings file ([rulings-file.md](rulings-file.md)); `revision --yes` only if the spine, the ledger or the conventions that reviewers judge against changed | must for `defect rule`. A bump prints and discards every current verdict and rejects packets still out. An edit of the ledger, the brief or `reviewer-context.md` without a bump is only warned about when a packet is recorded |
 | 14 | Before every report to the owner | `check`; quote its last line; end with "Deviations from the skill:" | must |
 | 15 | At the end of a round, or when asked about disk use | `gc` | should. It lists rounds past retention and deletes nothing; `gc --compact` removes the bulk of expired rounds (raw reports, packets, sentence maps, snapshots) and only with the owner's agreement |
 
@@ -159,11 +166,19 @@ blind reviewers, every must cluster applied or waived (none open, none deferred
 to the owner). Verification independence is recorded separately from content
 quality.
 
-If any reviewer discovers a scientific defect in the author's source that the
-requested task did not already authorize repairing, pause the entire section
-round with `needs_user`. Preserve the source and ask one focused question; do
-not continue other chunks or convert the defect into a completion-time
-limitation.
+A scientific defect in the author's source that the requested task did not
+already authorize repairing follows the rule in
+[quality-contract.md](../physics-paper-editing/quality-contract.md): log it with
+`defect add`, keep working on the chunks that do not depend on it, and leave the
+round `needs_user` until the author rules. Do not convert the defect into a
+completion-time limitation.
+
+## Related skills
+
+- **physics-paper-principles** — drafting and review canon
+- **physics-paper-editing** — passages of at most 12 sentences, and every chunk
+- **physics-paper-author-read** — responding to an author's own edits and margin
+  comments; its language goes through this skill
 
 ## Out of scope
 

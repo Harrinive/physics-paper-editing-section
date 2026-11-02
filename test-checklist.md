@@ -7,6 +7,8 @@
       immutable original source and boundaries, current candidate, identifiers,
       and is selected by `CURRENT`.
 - [ ] `section-brief.md` contains the global physics spine.
+- [ ] `paragraph-map.md` says what each paragraph is for, and every `story_check`
+      was ruled from it.
 - [ ] `object-ledger.md` covers every new or changed story-bearing object.
 - [ ] Chunks are argument-sized, normally at most 12 sentences, and source-
       format-safe. Any indivisible oversized unit is section-owned and reviewed.
@@ -94,8 +96,9 @@
       defined and justified, or removed before completion.
 - [ ] Reviewed work ran independent whole-unit sentence and terminology checks;
       every principle hit triggered its whole-unit specialist.
-- [ ] A newly discovered source-level scientific defect paused the entire round
-      instead of becoming a limitation or allowing other chunks to continue.
+- [ ] A newly discovered source-level scientific defect was logged with one
+      recommended repair; only the work that depends on it waited; it did not
+      become a limitation, and the round stayed open until the author ruled.
 - [ ] Selective chunk results record checked sentence IDs; exhaustive results
       contain every sentence.
 - [ ] A context or ledger revision invalidates dependent reviews even when the
